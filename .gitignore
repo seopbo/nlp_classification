@@ -102,3 +102,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Pycharm project settings
+.idea
+
+# PyTorch ckpt
+.tar
