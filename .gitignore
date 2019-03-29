@@ -108,3 +108,6 @@ venv.bak/
 
 # PyTorch ckpt
 *.tar
+
+# Tensorboard
+events.out.tfevents.*
