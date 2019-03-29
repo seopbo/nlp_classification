@@ -1,0 +1,12 @@
+{
+  "filepath": {"tr": "data/preprocessed_train.txt",
+               "val": "data/preprocessed_val.txt",
+               "tst": "data/preprocessed_test.txt",
+               "vocab": "data/vocab.pkl",
+               "ckpt": "checkpoint/model_ckpt.tar"},
+  "model": {"num_classes":  2},
+  "padder": {"length" : 70},
+  "training": {"epochs": 5,
+               "batch_size": 128,
+               "learning_rate": 1e-3}
+}
