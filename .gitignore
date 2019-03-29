@@ -107,4 +107,4 @@ venv.bak/
 .idea
 
 # PyTorch ckpt
-.tar
+*.tar
