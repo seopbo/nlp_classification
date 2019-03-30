@@ -1,1 +1,1 @@
-__all__ = ['data', 'net.py', 'utils']
+__all__ = ['data', 'net', 'utils']

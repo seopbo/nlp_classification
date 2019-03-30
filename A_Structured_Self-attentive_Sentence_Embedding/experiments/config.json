@@ -9,7 +9,7 @@
             "da": 350,
             "r": 30,
             "hidden_dim": 3000},
-  "training": {"epochs": 10,
+  "training": {"epochs": 5,
                "batch_size": 128,
                "learning_rate": 1e-3}
 }

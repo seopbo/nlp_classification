@@ -19,7 +19,7 @@ class SelfAttention(nn.Module):
         self._ws2 = nn.Linear(da, r, bias=False)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
-        attn_mat = F.softmax(self._ws2(F.tanh(self._ws1(h))), dim=1)
+        attn_mat = F.softmax(self._ws2(torch.tanh(self._ws1(h))), dim=1)
         attn_mat = attn_mat.permute(0, 2, 1)
         return attn_mat
 

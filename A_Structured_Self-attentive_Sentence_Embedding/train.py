@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 from torch import optim
 from torch.utils.data import DataLoader
-from torch.nn.utils import clip_grad_norm_
 from mecab import MeCab
 from model.utils import collate_fn
 from model.data import Corpus
@@ -21,12 +20,18 @@ def evaluate(model, dataloader, loss_fn, device):
         x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            mb_loss = loss_fn(model(x_mb, x_len_mb), y_mb)
+            score, _ = model(x_mb, x_len_mb)
+            mb_loss = loss_fn(score, y_mb)
         avg_loss += mb_loss.item()
     else:
         avg_loss /= (step + 1)
 
     return avg_loss
+
+def regularize(attn_mat, r):
+    sim = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
+    reg = torch.norm(sim - torch.eye(r), keepdim=0)
+    return reg
 
 def main(cfgpath):
     # parsing json
@@ -83,15 +88,20 @@ def main(cfgpath):
             x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
 
             opt.zero_grad()
-            mb_loss = loss_fn(model(x_mb, x_len_mb), y_mb)
+            score, attn_mat = model(x_mb, x_len_mb)
+            reg = regularize(attn_mat, r)
+            mb_loss = loss_fn(score, y_mb)
+            mb_loss.add_(reg)
             mb_loss.backward()
-            clip_grad_norm_(model.parameters(), 5)
             opt.step()
 
             tr_loss += mb_loss.item()
 
-            if (epoch * batch_size + step) % 100 == 0:
-                writer.add_scalar(tag='tr_loss', scalar_value=mb_loss.item())
+            if (epoch * batch_size + step) % 300 == 0:
+                val_loss = evaluate(model, val_dl, loss_fn, device)
+                writer.add_scalars('loss', {'train': tr_loss / (step + 1),
+                                            'validation': val_loss}, epoch * batch_size + step)
+                model.train()
         else:
             tr_loss /= (step + 1)
 
