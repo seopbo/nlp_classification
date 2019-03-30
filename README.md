@@ -6,11 +6,11 @@ Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
 
 |                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) |
 | :--------------- | :-------: | :------------: | :------: |
-| SenCNN           |  92.69%  |     86.84%     |  86.58%  |
-| CharCNN          | 88.25% | 82.75% | 82.54% |
-| ConvRec          | 83.76% | 80.83% | 80.67% |
-| VDCNN            | 86.21% | 83.94% | 83.43% |
-| SelfAttentiveNet | TBD | TBD | TBD |
+| SenCNN           |  96.80%  |     86.25%     |  86.07%  |
+| CharCNN          | 87.58% | 81.12% | 81.38% |
+| ConvRec          | 87.49% | 82.10% | 82.00% |
+| VDCNN            | 86.97% | 82.99% | 82.60% |
+| SelfAttentiveNet | 83.87% | 82.24% | 82.12% |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (SenCNN)
   + https://arxiv.org/abs/1408.5882
