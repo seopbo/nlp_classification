@@ -28,9 +28,10 @@ def evaluate(model, dataloader, loss_fn, device):
 
     return avg_loss
 
-def regularize(attn_mat, r):
+def regularize(attn_mat, r, device):
     sim = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
-    reg = torch.norm(sim - torch.eye(r), keepdim=0)
+    identity = torch.eye(r).to(device)
+    reg = torch.norm(sim - identity, keepdim=0)
     return reg
 
 def main(cfgpath):
@@ -89,7 +90,7 @@ def main(cfgpath):
 
             opt.zero_grad()
             score, attn_mat = model(x_mb, x_len_mb)
-            reg = regularize(attn_mat, r)
+            reg = regularize(attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
             mb_loss.add_(reg)
             mb_loss.backward()
@@ -109,7 +110,8 @@ def main(cfgpath):
         tqdm.write('epoch : {}, tr_loss : {:.3f}, val_loss : {:.3f}'.format(epoch + 1, tr_loss, val_loss))
 
     ckpt = {'model_state_dict': model.state_dict(),
-            'opt_state_dict': opt.state_dict()}
+            'opt_state_dict': opt.state_dict(),
+            'vocab': vocab}
 
     savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
     torch.save(ckpt, savepath)
