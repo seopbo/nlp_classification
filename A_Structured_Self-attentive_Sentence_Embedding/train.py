@@ -92,7 +92,7 @@ def main(cfgpath):
             score, attn_mat = model(x_mb, x_len_mb)
             reg = regularize(attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
-            mb_loss.add_(reg)
+            mb_loss.add_(0.01 * reg)
             mb_loss.backward()
             opt.step()
 
