@@ -98,10 +98,10 @@ def main(cfgpath):
 
             tr_loss += mb_loss.item()
 
-            if (epoch * batch_size + step) % 300 == 0:
+            if (epoch * len(tr_dl) + step) % 300 == 0:
                 val_loss = evaluate(model, val_dl, loss_fn, device)
                 writer.add_scalars('loss', {'train': tr_loss / (step + 1),
-                                            'validation': val_loss}, epoch * batch_size + step)
+                                            'validation': val_loss}, epoch * len(tr_dl) + step)
                 model.train()
         else:
             tr_loss /= (step + 1)
