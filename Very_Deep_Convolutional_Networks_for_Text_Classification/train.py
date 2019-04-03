@@ -4,6 +4,7 @@ import fire
 import torch
 import torch.nn as nn
 from torch import optim
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from model.utils import JamoTokenizer
 from model.data import Corpus
@@ -60,7 +61,8 @@ def main(cfgpath):
 
     # training
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(params=model.parameters(), lr=learning_rate)
+    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=5e-4)
+    scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
     writer = SummaryWriter(log_dir='./runs/exp')
@@ -89,6 +91,8 @@ def main(cfgpath):
             tr_loss /= (step + 1)
 
         val_loss = evaluate(model, val_dl, loss_fn, device)
+        scheduler.step(val_loss)
+
         tqdm.write('epoch : {}, tr_loss : {:.3f}, val_loss : {:.3f}'.format(epoch + 1, tr_loss, val_loss))
 
     ckpt = {'model_state_dict': model.state_dict(),
