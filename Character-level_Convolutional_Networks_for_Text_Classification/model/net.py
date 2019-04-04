@@ -54,7 +54,7 @@ class CharCNN(nn.Module):
 
         self.apply(self._init_weights)
 
-    def forward(self, x: torch.Tensor, p=.5) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         feature = self._extractor(x)
         score = self._classifier(feature)
         return score
