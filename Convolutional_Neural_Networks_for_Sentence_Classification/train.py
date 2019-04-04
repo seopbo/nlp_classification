@@ -81,7 +81,7 @@ def main(cfgpath):
             opt.zero_grad()
             mb_loss = loss_fn(model(x_mb), y_mb)
             mb_loss.backward()
-            clip_grad_norm_(model._fc.weight.grad, 5)
+            clip_grad_norm_(model._fc.weight, 5)
             opt.step()
 
             tr_loss += mb_loss.item()
