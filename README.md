@@ -9,7 +9,7 @@ The papers were implemented in using korean corpus
 | :--------------- | :-------: | :------------: | :------: |
 | SenCNN           |  91.88%  |     86.80%     |  86.56%  |
 | CharCNN          | 90.26% | 82.22% | 81.97% |
-| ConvRec          | 87.49% | 82.10% | 82.00% |
+| ConvRec          | 89.34% | 81.98% | 81.94% |
 | VDCNN            | 87.20% | 84.60% | 84.50% |
 | SelfAttentiveNet | 83.87% | 82.24% | 82.12% |
 
