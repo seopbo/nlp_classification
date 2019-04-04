@@ -7,10 +7,12 @@ class Flatten(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x.view(x.size(0), -1)
 
+
 class Permute(nn.Module):
     """Permute class"""
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x.permute(0, 2, 1)
+
 
 class ConvBlock(nn.Module):
     """ConvBlock class"""
@@ -41,6 +43,7 @@ class ConvBlock(nn.Module):
         fmap = F.relu(self._bn(fmap))
         return fmap
 
+
 class VDCNN(nn.Module):
     """VDCNN class"""
     def __init__(self, num_classes: int, embedding_dim: int, k_max: int, dic: dict):
@@ -53,29 +56,31 @@ class VDCNN(nn.Module):
             dic (dict): token2idx
         """
         super(VDCNN, self).__init__()
-        self._ops = nn.Sequential(nn.Embedding(len(dic), embedding_dim, 0),
-                                  Permute(),
-                                  nn.Conv1d(embedding_dim, 64, 3, 1, 1),
-                                  ConvBlock(64, 64),
-                                  ConvBlock(64, 64),
-                                  nn.MaxPool1d(2, 2),
-                                  ConvBlock(64, 128),
-                                  ConvBlock(128, 128),
-                                  nn.MaxPool1d(2, 2),
-                                  ConvBlock(128, 256),
-                                  ConvBlock(256, 256),
-                                  nn.MaxPool1d(2, 2),
-                                  ConvBlock(256, 512),
-                                  ConvBlock(512, 512),
-                                  nn.AdaptiveMaxPool1d(k_max),
-                                  Flatten(),
-                                  nn.Linear(512 * k_max, 2048),
-                                  nn.ReLU(),
-                                  nn.Linear(2048, 2048),
-                                  nn.ReLU(),
-                                  nn.Linear(2048, num_classes))
+        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, 0),
+                                        Permute(),
+                                        nn.Conv1d(embedding_dim, 64, 3, 1, 1),
+                                        ConvBlock(64, 64),
+                                        ConvBlock(64, 64),
+                                        nn.MaxPool1d(2, 2),
+                                        ConvBlock(64, 128),
+                                        ConvBlock(128, 128),
+                                        nn.MaxPool1d(2, 2),
+                                        ConvBlock(128, 256),
+                                        ConvBlock(256, 256),
+                                        nn.MaxPool1d(2, 2),
+                                        ConvBlock(256, 512),
+                                        ConvBlock(512, 512),
+                                        nn.AdaptiveMaxPool1d(k_max),
+                                        Flatten())
+
+        self._classifier = nn.Sequential(nn.Linear(512 * k_max, 2048),
+                                         nn.ReLU(),
+                                         nn.Linear(2048, 2048),
+                                         nn.ReLU(),
+                                         nn.Linear(2048, num_classes))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        score = self._ops(x)
+        feature = self._extractor(x)
+        score = self._classifier(feature)
         return score
 
