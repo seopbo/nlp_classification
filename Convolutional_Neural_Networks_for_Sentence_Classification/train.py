@@ -64,7 +64,7 @@ def main(cfgpath):
 
     # training
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=5e-4)
+    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=1e-4)
     scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
