@@ -2,6 +2,58 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from gluonnlp import Vocab
+from typing import Tuple
+
+
+class MultiChannelEmbedding(nn.Module):
+    """MultiChannelEmbedding class"""
+    def __init__(self, vocab: Vocab):
+        """Instantiating MultiChannelEmbedding class
+
+        Args:
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+        """
+        super(MultiChannelEmbedding, self).__init__()
+        self._static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
+                                                    freeze=True)
+        self._non_static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
+                                                        freeze=False)
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        static = self._static(x).permute(0, 2, 1)
+        non_static = self._non_static(x).permute(0, 2, 1)
+        return static, non_static
+
+
+class ConvolutionLayer(nn.Module):
+    """ConvolutionLayer class"""
+    def __init__(self, in_channels: int, out_channels: int):
+        """Instantiating ConvolutionLayer class
+
+        Args:
+            in_channels (int): the number of channels from input feature map
+            out_channels (int): the number of channels from output feature map
+        """
+        super(ConvolutionLayer, self).__init__()
+        self._tri_gram = nn.Conv1d(in_channels=in_channels, out_channels=out_channels // 3, kernel_size=3)
+        self._tetra_gram = nn.Conv1d(in_channels=in_channels, out_channels=out_channels // 3, kernel_size=4)
+        self._penta_gram = nn.Conv1d(in_channels=in_channels, out_channels=out_channels // 3, kernel_size=5)
+
+    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        static, non_static = x
+        tri_fmap = F.relu(self._tri_gram(static)) + F.relu(self._tri_gram(non_static))
+        tetra_fmap = F.relu(self._tetra_gram(static)) + F.relu(self._tetra_gram(non_static))
+        penta_fmap = F.relu(self._penta_gram(static)) + F.relu(self._penta_gram(non_static))
+        return tri_fmap, tetra_fmap, penta_fmap
+
+
+class MaxOverTimePooling(nn.Module):
+    """MaxOverTimePooling class"""
+    def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        tri_fmap, tetra_fmap, penta_fmap = x
+        fmap = torch.cat([tri_fmap.max(dim=-1)[0], tetra_fmap.max(dim=-1)[0], penta_fmap.max(dim=-1)[0]], dim=-1)
+        return fmap
+
 
 class SenCNN(nn.Module):
     """SenCNN class"""
@@ -13,55 +65,19 @@ class SenCNN(nn.Module):
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SenCNN, self).__init__()
-        # static embedding
-        self._static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
-                                                    freeze=True)
-        # self.static.weight.data.copy_(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()))
-        # self.static.weight.requires_grad_(False)
+        self._embedding = MultiChannelEmbedding(vocab)
+        self._convolution = ConvolutionLayer(300, 300)
+        self._pooling = MaxOverTimePooling()
+        self._dropout = nn.Dropout()
+        self._fc = nn.Linear(300, num_classes)
 
-        # non-static embedding
-        self._non_static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
-                                                        freeze=False)
-        # self.non_static = nn.Embedding(len(vocab), embedding_dim=300, padding_idx=0)
-        # self.non_static.weight.data.copy_(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()))
-
-        # convolution layer
-        self._tri_gram = nn.Conv1d(in_channels=300, out_channels=100, kernel_size=3)
-        self._tetra_gram = nn.Conv1d(in_channels=300, out_channels=100, kernel_size=4)
-        self._penta_gram = nn.Conv1d(in_channels=300, out_channels=100, kernel_size=5)
-
-        # output layer
-        self._fc = nn.Linear(in_features=300, out_features=num_classes)
-
-        # dropout
-        self._drop = nn.Dropout()
-
-        # initialization
         self.apply(self._init_weights)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # embedding layer
-        static_batch = self._static(x)
-        static_batch = static_batch.permute(0, 2, 1) # for Conv1d
-
-        non_static_batch = self._non_static(x)
-        non_static_batch = non_static_batch.permute(0, 2, 1) # for Conv1d
-
-        # convolution layer (extract feature)
-        tri_feature = F.relu(self._tri_gram(static_batch)) + F.relu(self._tri_gram(non_static_batch))
-        tetra_feature = F.relu(self._tetra_gram(static_batch)) + F.relu(self._tetra_gram(non_static_batch))
-        penta_feature = F.relu(self._penta_gram(static_batch)) + F.relu(self._penta_gram(non_static_batch))
-
-        # max-overtime pooling
-        tri_feature = torch.max(tri_feature, 2)[0]
-        tetra_feature = torch.max(tetra_feature, 2)[0]
-        penta_feature = torch.max(penta_feature, 2)[0]
-        feature = torch.cat((tri_feature, tetra_feature, penta_feature), 1)
-
-        # dropout
-        feature = self._drop(feature)
-
-        # output layer
+        fmap = self._embedding(x)
+        fmap = self._convolution(fmap)
+        feature = self._pooling(fmap)
+        feature = self._dropout(feature)
         score = self._fc(feature)
 
         return score
