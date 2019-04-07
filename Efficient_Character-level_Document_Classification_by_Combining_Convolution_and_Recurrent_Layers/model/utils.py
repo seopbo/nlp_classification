@@ -104,7 +104,8 @@ class JamoTokenizer:
     def token2idx(self):
         return self._token2idx
 
-def collate_fn(data: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def collate_fn(data: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]) -> \
+        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """custom collate_fn for DataLoader
 
     Args:
