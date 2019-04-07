@@ -11,7 +11,7 @@ The papers were implemented in using korean corpus
 | CharCNN          | 90.26% | 82.22% | 81.97% |
 | ConvRec          | 89.34% | 81.98% | 81.94% |
 | VDCNN            | 87.20% | 84.60% | 84.50% |
-| SelfAttentiveNet | 83.87% | 82.24% | 82.12% |
+| SAN | 86.22% | 84.13% | 84.02% |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -21,7 +21,7 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1602.00367
 * [x] [Very Deep Convolutional Networks for Text Classification](https://github.com/aisolab/nlp_implementation/tree/master/Very_Deep_Convolutional_Networks_for_Text_Classification) (as VDCNN)
   + https://arxiv.org/abs/1606.01781
-* [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding) (as SelfAttentiveNet)
+* [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding) (as SAN)
   + https://arxiv.org/abs/1703.03130
 
 ### Language model
