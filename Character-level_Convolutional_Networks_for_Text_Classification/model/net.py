@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from typing import Dict
 
 class Flatten(nn.Module):
     """Flatten class"""
@@ -16,7 +16,7 @@ class Permute(nn.Module):
 
 class CharCNN(nn.Module):
     """CharCNN class"""
-    def __init__(self, num_classes: int, embedding_dim: int, dic: dict) -> None:
+    def __init__(self, num_classes: int, embedding_dim: int, dic: Dict[str, int]) -> None:
         """Instantiating CharCNN
 
         Args:

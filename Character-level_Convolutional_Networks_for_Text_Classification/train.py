@@ -1,8 +1,8 @@
-import os
 import json
 import fire
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
@@ -29,11 +29,12 @@ def evaluate(model, dataloader, loss_fn, device):
 
 def main(cfgpath):
     # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
 
     ## common params
     tokenizer = JamoTokenizer()
@@ -96,7 +97,7 @@ def main(cfgpath):
     ckpt = {'model_state_dict': model.state_dict(),
             'opt_state_dict': opt.state_dict()}
 
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     torch.save(ckpt, savepath)
 
 if __name__ == '__main__':
