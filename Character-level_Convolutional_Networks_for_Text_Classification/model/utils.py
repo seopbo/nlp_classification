@@ -1,4 +1,5 @@
 import re
+from typing import List
 
 class JamoTokenizer:
     """JamoTokenizer class"""
@@ -26,7 +27,7 @@ class JamoTokenizer:
         self._token2idx = ['<pad>', '<eng>', '<num>', '<unk>'] + self._token2idx
         self._token2idx = {token: idx for idx, token in enumerate(self._token2idx)}
 
-    def tokenize(self, string: str) -> list:
+    def tokenize(self, string: str) -> List[str]:
         """Tokenizing string to sequences of indices
 
         Args:
@@ -60,7 +61,7 @@ class JamoTokenizer:
 
         return sequence_of_tokens
 
-    def transform(self, sequence_of_tokens: list) -> list:
+    def transform(self, sequence_of_tokens: List[str]) -> List[int]:
         """Transforming sequences of tokens to sequences of indices
 
         Args:
@@ -83,14 +84,14 @@ class JamoTokenizer:
 
         return sequence_of_indices
 
-    def tokenize_and_transform(self, string: str) -> list:
+    def tokenize_and_transform(self, string: str) -> List[int]:
         """Tokenizing and transforming string to sequence
 
         Args:
             string (str): characters
 
         Returns:
-            sequence_of_indices (list): list of
+            sequence_of_indices (list): list of integers
         """
         sequence_of_indices = self.transform(self.tokenize(string))
 
