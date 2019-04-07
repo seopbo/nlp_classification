@@ -7,7 +7,7 @@ from typing import Tuple
 
 class MultiChannelEmbedding(nn.Module):
     """MultiChannelEmbedding class"""
-    def __init__(self, vocab: Vocab):
+    def __init__(self, vocab: Vocab) -> None:
         """Instantiating MultiChannelEmbedding class
 
         Args:
@@ -27,7 +27,7 @@ class MultiChannelEmbedding(nn.Module):
 
 class ConvolutionLayer(nn.Module):
     """ConvolutionLayer class"""
-    def __init__(self, in_channels: int, out_channels: int):
+    def __init__(self, in_channels: int, out_channels: int) -> None:
         """Instantiating ConvolutionLayer class
 
         Args:

@@ -1,7 +1,7 @@
-import os
 import torch
 import json
 import fire
+from pathlib import Path
 from model.data import Corpus
 from model.net import SenCNN
 from torch.utils.data import DataLoader
@@ -25,11 +25,12 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
     # restoring model
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
 
     vocab = ckpt['vocab']
@@ -41,9 +42,9 @@ def main(cfgpath):
     # creating dataset, dataloader
     tagger = MeCab()
     padder = PadSequence(length=params['padder'].get('length'))
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
-    tst_filepath = os.path.join(os.getcwd(), params['filepath'].get('tst'))
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
+    tst_filepath = proj_dir / params['filepath'].get('tst')
 
     tr_ds = Corpus(tr_filepath, vocab, tagger, padder)
     tr_dl = DataLoader(tr_ds, batch_size=128, num_workers=4)

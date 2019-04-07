@@ -1,9 +1,9 @@
-import os
 import pickle
 import json
 import fire
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch import optim
@@ -30,16 +30,16 @@ def evaluate(model, dataloader, loss_fn, device):
     return avg_loss
 
 def main(cfgpath):
-    # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
     vocab_filepath = params['filepath'].get('vocab')
 
     ## common params
-    with open(vocab_filepath, mode='rb') as io:
+    with open(proj_dir / vocab_filepath, mode='rb') as io:
         vocab = pickle.load(io)
 
     ## model params
@@ -102,7 +102,7 @@ def main(cfgpath):
             'opt_state_dict': opt.state_dict(),
             'vocab': vocab}
 
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     torch.save(ckpt, savepath)
 
 if __name__ == '__main__':
