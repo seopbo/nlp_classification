@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Dict
+
 
 class Flatten(nn.Module):
     """Flatten class"""
@@ -46,7 +48,7 @@ class ConvBlock(nn.Module):
 
 class VDCNN(nn.Module):
     """VDCNN class"""
-    def __init__(self, num_classes: int, embedding_dim: int, k_max: int, dic: dict):
+    def __init__(self, num_classes: int, embedding_dim: int, k_max: int, dic: Dict[str, int]):
         """Instantiating VDCNN class
 
         Args:
