@@ -1,6 +1,8 @@
 import re
 import torch
 from torch.nn.utils.rnn import pad_sequence
+from typing import List, Tuple
+
 
 class JamoTokenizer:
     """JamoTokenizer class"""
@@ -28,7 +30,7 @@ class JamoTokenizer:
         self._token2idx = ['<pad>', '<eng>', '<num>', '<unk>'] + self._token2idx
         self._token2idx = {token: idx for idx, token in enumerate(self._token2idx)}
 
-    def tokenize(self, string: str) -> list:
+    def tokenize(self, string: str) -> List[str]:
         """Tokenizing string to sequences of indices
 
         Args:
@@ -62,7 +64,7 @@ class JamoTokenizer:
 
         return sequence_of_tokens
 
-    def transform(self, sequence_of_tokens: list) -> list:
+    def transform(self, sequence_of_tokens: List[str]) -> List[int]:
         """Transforming sequences of tokens to sequences of indices
 
         Args:
@@ -85,7 +87,7 @@ class JamoTokenizer:
 
         return sequence_of_indices
 
-    def tokenize_and_transform(self, string: str) -> list:
+    def tokenize_and_transform(self, string: str) -> List[int]:
         """Tokenizing and transforming string to sequence
 
         Args:
@@ -102,7 +104,7 @@ class JamoTokenizer:
     def token2idx(self):
         return self._token2idx
 
-def collate_fn(data: list) -> (torch.Tensor, torch.Tensor, torch.Tensor):
+def collate_fn(data: List[Tuple[torch.Tensor, torch.Tensor]]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """custom collate_fn for DataLoader
 
     Args:

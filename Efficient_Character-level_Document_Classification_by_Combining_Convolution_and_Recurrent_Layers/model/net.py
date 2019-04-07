@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence
+from typing import Dict
 
 
 class Permute(nn.Module):
@@ -12,8 +12,7 @@ class Permute(nn.Module):
 
 class ConvRec(nn.Module):
     """ConvRec class"""
-    def __init__(self, num_classes: int, embedding_dim: int,
-                 hidden_dim: int, dic: dict) -> None:
+    def __init__(self, num_classes: int, embedding_dim: int, hidden_dim: int, dic: Dict[str, int]) -> None:
         """Instantiating ConvRec class
 
         Args:

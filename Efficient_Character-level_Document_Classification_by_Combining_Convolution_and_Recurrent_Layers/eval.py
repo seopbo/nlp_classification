@@ -1,7 +1,7 @@
-import os
 import json
 import fire
 import torch
+from pathlib import Path
 from torch.utils.data import DataLoader
 from model.utils import collate_fn
 from model.utils import JamoTokenizer
@@ -25,11 +25,12 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
     # restoring model
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
     tokenizer = JamoTokenizer()
 
@@ -44,9 +45,9 @@ def main(cfgpath):
     model.eval()
 
     # creating dataset, dataloader
-    tst_filepath = os.path.join(os.getcwd(), params['filepath'].get('tst'))
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
+    tst_filepath = proj_dir / params['filepath'].get('tst')
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
     batch_size = params['training'].get('batch_size')
     min_length = params['training'].get('min_length')
 
