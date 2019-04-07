@@ -1,15 +1,16 @@
-import os
 import json
 import pickle
 import fire
 import torch
 import torch.nn as nn
+from pathlib import Path
 from torch import optim
+from torch.optim.lr_scheduler import  ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from mecab import MeCab
 from model.utils import collate_fn
 from model.data import Corpus
-from model.net import SelfAttentiveNet
+from model.net import SAN
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
@@ -36,11 +37,12 @@ def regularize(attn_mat, r, device):
 
 def main(cfgpath):
     # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
     vocab_filepath = params['filepath'].get('vocab')
 
     ## common params
@@ -61,8 +63,8 @@ def main(cfgpath):
     learning_rate = params['training'].get('learning_rate')
 
     # creating model
-    model = SelfAttentiveNet(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                             da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
+                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
 
     # creating dataset, dataloader
     tr_ds = Corpus(tr_filepath, tokenizer, vocab)
@@ -74,7 +76,8 @@ def main(cfgpath):
 
     # training
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=5 * 10**-4)
+    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=5e-4)
+    scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     # device = torch.device('cpu')
     model.to(device)
@@ -92,7 +95,7 @@ def main(cfgpath):
             score, attn_mat = model(x_mb, x_len_mb)
             reg = regularize(attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
-            mb_loss.add_(0.01 * reg)
+            mb_loss.add_(reg)
             mb_loss.backward()
             opt.step()
 
@@ -107,13 +110,14 @@ def main(cfgpath):
             tr_loss /= (step + 1)
 
         val_loss = evaluate(model, val_dl, loss_fn, device)
+        scheduler.step(val_loss)
         tqdm.write('epoch : {}, tr_loss : {:.3f}, val_loss : {:.3f}'.format(epoch + 1, tr_loss, val_loss))
 
     ckpt = {'model_state_dict': model.state_dict(),
             'opt_state_dict': opt.state_dict(),
             'vocab': vocab}
 
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     torch.save(ckpt, savepath)
 
 if __name__ == '__main__':

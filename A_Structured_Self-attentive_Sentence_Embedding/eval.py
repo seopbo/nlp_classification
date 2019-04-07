@@ -1,11 +1,11 @@
-import os
 import json
 import fire
 import torch
+from pathlib import Path
 from torch.utils.data import DataLoader
 from model.utils import collate_fn
 from model.data import Corpus
-from model.net import SelfAttentiveNet
+from model.net import SAN
 from mecab import MeCab
 from tqdm import tqdm
 
@@ -26,11 +26,12 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    with open(os.path.join(os.getcwd(), cfgpath)) as io:
+    proj_dir = Path('.')
+    with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
     # restoring model
-    savepath = os.path.join(os.getcwd(), params['filepath'].get('ckpt'))
+    savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
 
     vocab = ckpt['vocab']
@@ -40,16 +41,16 @@ def main(cfgpath):
     r = params['model'].get('r')
     hidden_dim = params['model'].get('hidden_dim')
 
-    model = SelfAttentiveNet(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                             da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
+                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
     model.load_state_dict(ckpt['model_state_dict'])
     model.eval()
 
     # creating dataset, dataloader
     tokenizer = MeCab()
-    tst_filepath = os.path.join(os.getcwd(), params['filepath'].get('tst'))
-    tr_filepath = os.path.join(os.getcwd(), params['filepath'].get('tr'))
-    val_filepath = os.path.join(os.getcwd(), params['filepath'].get('val'))
+    tst_filepath = proj_dir / params['filepath'].get('tst')
+    tr_filepath = proj_dir / params['filepath'].get('tr')
+    val_filepath = proj_dir / params['filepath'].get('val')
     batch_size = params['training'].get('batch_size')
 
     tr_ds = Corpus(tr_filepath, tokenizer, vocab)

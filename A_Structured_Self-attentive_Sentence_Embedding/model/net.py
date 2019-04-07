@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from gluonnlp import Vocab
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from typing import Tuple
+
 
 class SelfAttention(nn.Module):
     """SelfAttention class"""
@@ -23,11 +25,11 @@ class SelfAttention(nn.Module):
         attn_mat = attn_mat.permute(0, 2, 1)
         return attn_mat
 
-class SelfAttentiveNet(nn.Module):
-    """SelfAttentiveNet class"""
-    def __init__(self, num_classes: int, lstm_hidden_dim: int, da: int, r: int,
-                 hidden_dim: int, vocab: Vocab) -> None:
-        """Instantiating SelfAttentiveNet class
+
+class SAN(nn.Module):
+    """SAN class"""
+    def __init__(self, num_classes: int, lstm_hidden_dim: int, da: int, r: int, hidden_dim: int, vocab: Vocab) -> None:
+        """Instantiating SAN class
 
         Args:
             num_classes (int): number of classes
@@ -37,15 +39,15 @@ class SelfAttentiveNet(nn.Module):
             hidden_dim (int): hidden dimension of mlp
             vocab (gluonnlp.Vocab): instance of gluonnlp.Vocab
         """
-        super(SelfAttentiveNet, self).__init__()
-        self._embedding = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()))
+        super(SAN, self).__init__()
+        self._embedding = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()), False)
         self._lstm = nn.LSTM(self._embedding.embedding_dim, hidden_size=lstm_hidden_dim, bidirectional=True,
                              batch_first=True)
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
         self._fc1 = nn.Linear(2 * lstm_hidden_dim * r, hidden_dim)
         self._fc2 = nn.Linear(hidden_dim, num_classes)
 
-    def forward(self, x: torch.Tensor, x_len: torch.Tensor) -> None:
+    def forward(self, x: torch.Tensor, x_len: torch.Tensor) -> Tuple[torch.tensor, torch.tensor]:
         x_batch = self._embedding(x)
         x_batch = pack_padded_sequence(x_batch, x_len, True)
         outputs, _ = self._lstm(x_batch)
