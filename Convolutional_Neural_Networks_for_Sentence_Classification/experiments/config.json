@@ -1,7 +1,7 @@
 {
-  "filepath": {"tr": "data/preprocessed_train.txt",
-               "val": "data/preprocessed_val.txt",
-               "tst": "data/preprocessed_test.txt",
+  "filepath": {"tr": "data/train.txt",
+               "val": "data/val.txt",
+               "tst": "data/test.txt",
                "vocab": "data/vocab.pkl",
                "ckpt": "checkpoint/model_ckpt.tar"},
   "model": {"num_classes":  2},
