@@ -24,9 +24,11 @@ The papers were implemented in using korean corpus
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding) (as SAN)
   + https://arxiv.org/abs/1703.03130
 
+
 ### Language model
 * [ ] Character-Aware Neural Language Models
   + https://arxiv.org/abs/1508.06615
+
 
 ### Named entity recognition
 * [ ] Bidirectional LSTM-CRF Models for Sequence Tagging
@@ -43,6 +45,18 @@ The papers were implemented in using korean corpus
 * [ ] Attention Is All You Need
 	+ https://arxiv.org/abs/1706.03762
 
+
 ### Machine reading comprension
 * [ ] Bi-directional attention flow for machine comprehension
-	+  https://arxiv.org/abs/1611.01603
+	+ https://arxiv.org/abs/1611.01603
+
+### Transfer learning
+* [ ] Deep contextualized word representations
+	+ https://arxiv.org/abs/1802.05365
+* [ ] Improving Language Understanding by Generative Pre-Training
+	+ https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf
+* [ ] BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+	+ https://arxiv.org/abs/1810.04805
+* [ ] Language Models are Unsupervised Multitask Learners
+	+ https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf
+
