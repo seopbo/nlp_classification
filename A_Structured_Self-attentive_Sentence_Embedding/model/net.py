@@ -12,12 +12,12 @@ class SAN(nn.Module):
         """Instantiating SAN class
 
         Args:
-            num_classes (int): number of classes
-            lstm_hidden_dim (int): hidden dimension of bi-directional lstm
-            da (int): hidden dimension of self-attention
-            r (int): number of aspect of self-attention
-            hidden_dim (int): hidden dimension of mlp
-            vocab (gluonnlp.Vocab): instance of gluonnlp.Vocab
+            num_classes (int): the number of classes
+            lstm_hidden_dim (int): the number of features in the hidden states in bi-directional lstm
+            da (int): the number of features in hidden layer from self-attention
+            r (int): the number of aspects of self-attention
+            hidden_dim (int): the number of features in hidden layer from mlp
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SAN, self).__init__()
         self._embedding = PreEmbedding(vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
