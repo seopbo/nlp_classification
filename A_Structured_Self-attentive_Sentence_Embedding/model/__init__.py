@@ -1,1 +1,1 @@
-__all__ = ['data', 'net', 'utils']
+__all__ = ['data', 'net', 'utils', 'ops']

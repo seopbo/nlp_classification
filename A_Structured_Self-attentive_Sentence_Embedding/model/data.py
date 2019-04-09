@@ -5,6 +5,7 @@ from mecab import MeCab
 from gluonnlp import Vocab
 from typing import Tuple
 
+
 class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, tokenizer: MeCab, vocab: Vocab) -> None:

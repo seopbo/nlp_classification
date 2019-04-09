@@ -2,6 +2,7 @@ import torch
 from torch.nn.utils.rnn import pad_sequence
 from typing import List, Tuple
 
+
 def collate_fn(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
         Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """custom collate_fn for DataLoader

@@ -14,14 +14,15 @@ from model.net import SAN
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
+
 def evaluate(model, dataloader, loss_fn, device):
     model.eval()
     avg_loss = 0
     for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
-        x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
+        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            score, _ = model(x_mb, x_len_mb)
+            score, _ = model(x_mb)
             mb_loss = loss_fn(score, y_mb)
         avg_loss += mb_loss.item()
     else:
@@ -29,12 +30,14 @@ def evaluate(model, dataloader, loss_fn, device):
 
     return avg_loss
 
+
 def regularize(attn_mat, r, device):
     sim = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
     identity = torch.eye(r).to(device)
     reg = torch.norm(sim - identity, keepdim=0)
     return reg
 
+cfgpath = 'experiments/config.json'
 def main(cfgpath):
     # parsing json
     proj_dir = Path('.')
@@ -89,10 +92,10 @@ def main(cfgpath):
 
         model.train()
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
-            x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
+            x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
             opt.zero_grad()
-            score, attn_mat = model(x_mb, x_len_mb)
+            score, attn_mat = model(x_mb)
             reg = regularize(attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
             mb_loss.add_(reg)
