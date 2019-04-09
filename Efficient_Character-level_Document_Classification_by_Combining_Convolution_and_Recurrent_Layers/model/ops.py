@@ -138,7 +138,7 @@ class BiLSTM(nn.Module):
         outputs, hc = self._ops(x)
 
         if self._using_sequence:
-            hiddens = pack_padded_sequence(outputs)[0].permute(1, 0, 2)
+            hiddens = pad_packed_sequence(outputs)[0].permute(1, 0, 2)
             return hiddens
         else:
             feature = torch.cat([*hc[0]], dim=1)
