@@ -9,6 +9,13 @@ from typing import Tuple
 class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, tokenizer: MeCab, vocab: Vocab) -> None:
+        """Instantiating Corpus class
+
+        Args:
+            filepath (str): filepath
+            tokenizer (mecab.MeCab): the instance of mecab.Mecab
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+        """
         self._corpus = pd.read_csv(filepath, sep='\t').loc[:, ['document', 'label']]
         self._tokenizer = tokenizer
         self._vocab = vocab

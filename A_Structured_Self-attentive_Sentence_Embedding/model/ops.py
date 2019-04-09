@@ -8,7 +8,6 @@ from typing import Tuple, Union
 
 class PreEmbedding(nn.Module):
     """PreEmbedding class"""
-
     def __init__(self, vocab: Vocab, padding_idx: int = 0, freeze: bool = True,
                  permuting: bool = True, tracking: bool = True) -> None:
         """Instantiating PreEmbedding class
@@ -38,9 +37,9 @@ class PreEmbedding(nn.Module):
 
 class RNNInPipe(nn.Module):
     """RNNPipe class"""
-
     def __init__(self, permuting: bool = True):
         """Instantiating RNNInPipe class
+
         Args:
             permuting (bool): permuting (n, c, l) -> (n, l, c). Default: True
         """
@@ -55,9 +54,9 @@ class RNNInPipe(nn.Module):
 
 class BiLSTM(nn.Module):
     """BiLSTM class"""
-
     def __init__(self, input_size: int, hidden_size: int, using_sequence: bool = True) -> None:
-        """Instantiating BiLSTM class""
+        """Instantiating BiLSTM class
+
         Args:
             input_size (int): the number of expected features in the input x
             hidden_size (int): the number of features in the hidden state h
@@ -82,6 +81,7 @@ class SelfAttention(nn.Module):
     """SelfAttention class"""
     def __init__(self, input_dim: int, da: int, r: int) -> None:
         """Instantiating SelfAttention class
+
         Args:
             input_dim (int): dimension of input, eg) (batch_size, seq_len, input_dim)
             da (int): dimension of hidden layer

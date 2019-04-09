@@ -8,7 +8,6 @@ from typing import Tuple
 
 class SAN(nn.Module):
     """SAN class"""
-
     def __init__(self, num_classes: int, lstm_hidden_dim: int, da: int, r: int, hidden_dim: int, vocab: Vocab) -> None:
         """Instantiating SAN class
 
