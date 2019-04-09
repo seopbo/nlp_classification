@@ -27,7 +27,7 @@ class JamoTokenizer:
 
         self._token2idx = sorted(
             list(set(self._chosung_list + self._jungsung_list + self._jongsung_list)))
-        self._token2idx = ['<pad>', '<eng>', '<num>', '<unk>'] + self._token2idx
+        self._token2idx = ['<pad>', '<eng>', '<num>', '<unk>', '<not>'] + self._token2idx
         self._token2idx = {token: idx for idx, token in enumerate(self._token2idx)}
 
     def tokenize(self, string: str) -> List[str]:
@@ -57,7 +57,10 @@ class JamoTokenizer:
                 sequence_of_tokens.append(self._jungsung_list[alphabet2])
                 alphabet3 = int(
                     (char_code - (self._chosung * alphabet1) - (self._jungsung * alphabet2)))
-                if alphabet3 != 0:
+
+                if alphabet3 == 0:
+                    sequence_of_tokens.append('<not>')
+                else:
                     sequence_of_tokens.append(self._jongsung_list[alphabet3])
             else:
                 sequence_of_tokens.append(char)
@@ -103,6 +106,7 @@ class JamoTokenizer:
     @property
     def token2idx(self):
         return self._token2idx
+
 
 def collate_fn(data: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]) -> \
         Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:

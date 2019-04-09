@@ -8,6 +8,6 @@
             "hidden_dim": 128},
   "training": {"epochs": 10,
                "batch_size": 128,
-               "min_length": 12,
+               "min_length": 15,
                "learning_rate": 1e-3}
 }

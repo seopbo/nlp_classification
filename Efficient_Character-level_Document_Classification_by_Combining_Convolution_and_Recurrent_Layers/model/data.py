@@ -25,7 +25,8 @@ class Corpus(Dataset):
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         tokenized2indices = self._tokenizer.tokenize_and_transform(self._corpus.iloc[idx]['document'])
         if len(tokenized2indices) < self._min_length:
-            tokenized2indices = tokenized2indices + (self._min_length - len(tokenized2indices)) * [0]
+            tokenized2indices = tokenized2indices + (self._min_length - len(tokenized2indices)) * \
+                                [self._tokenizer.token2idx.get(' ')]
         tokenized2indices = torch.tensor(tokenized2indices)
         length = torch.tensor(len(tokenized2indices))
         label = torch.tensor(self._corpus.iloc[idx]['label'])

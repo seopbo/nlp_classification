@@ -9,19 +9,21 @@ from model.data import Corpus
 from model.net import ConvRec
 from tqdm import tqdm
 
+
 def get_accuracy(model, dataloader, device):
     correct_count = 0
     total_count = 0
     for mb in tqdm(dataloader, desc='steps'):
-        x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
+        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            y_mb_hat = torch.max(model(x_mb, x_len_mb), 1)[1]
+            y_mb_hat = torch.max(model(x_mb), 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
             total_count += x_mb.size()[0]
     else:
         acc = correct_count / total_count
     return acc
+
 
 def main(cfgpath):
     # parsing json
@@ -66,6 +68,7 @@ def main(cfgpath):
     tst_acc = get_accuracy(model, tst_dl, device)
 
     print('tr_acc: {:.2%}, val_acc: {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+
 
 if __name__ == '__main__':
     fire.Fire(main)

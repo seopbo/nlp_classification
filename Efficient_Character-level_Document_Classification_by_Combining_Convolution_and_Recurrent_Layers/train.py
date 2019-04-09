@@ -13,19 +13,21 @@ from model.net import ConvRec
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
+
 def evaluate(model, dataloader, loss_fn, device):
     model.eval()
     avg_loss = 0
     for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
-        x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
+        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            mb_loss = loss_fn(model(x_mb, x_len_mb), y_mb)
+            mb_loss = loss_fn(model(x_mb), y_mb)
         avg_loss += mb_loss.item()
     else:
         avg_loss /= (step + 1)
 
     return avg_loss
+
 
 def main(cfgpath):
     # parsing json
@@ -76,10 +78,10 @@ def main(cfgpath):
 
         model.train()
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
-            x_mb, y_mb, x_len_mb = map(lambda elm: elm.to(device), mb)
+            x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
             opt.zero_grad()
-            mb_loss = loss_fn(model(x_mb, x_len_mb), y_mb)
+            mb_loss = loss_fn(model(x_mb), y_mb)
             mb_loss.backward()
             clip_grad_norm_(model.parameters(), 5)
             opt.step()
@@ -102,6 +104,7 @@ def main(cfgpath):
 
     savepath = proj_dir / params['filepath'].get('ckpt')
     torch.save(ckpt, savepath)
+
 
 if __name__ == '__main__':
     fire.Fire(main)
