@@ -6,6 +6,7 @@ from gluonnlp.data import PadSequence
 from gluonnlp import Vocab
 from typing import Tuple
 
+
 class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, vocab: Vocab, tokenizer: MeCab, padder: PadSequence) -> None:
