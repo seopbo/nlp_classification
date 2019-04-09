@@ -36,7 +36,7 @@ class PreEmbedding(nn.Module):
 
 
 class RNNInPipe(nn.Module):
-    """RNNPipe class"""
+    """RNNInPipe class"""
     def __init__(self, permuting: bool = True):
         """Instantiating RNNInPipe class
 
