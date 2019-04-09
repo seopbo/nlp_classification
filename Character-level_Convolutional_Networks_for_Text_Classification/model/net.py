@@ -7,7 +7,7 @@ from typing import Dict
 class CharCNN(nn.Module):
     """CharCNN class"""
     def __init__(self, num_classes: int, embedding_dim: int, dic: Dict[str, int]) -> None:
-        """Instantiating CharCNN
+        """Instantiating CharCNN class
 
         Args:
             num_classes (int): number of classes
@@ -53,4 +53,4 @@ class CharCNN(nn.Module):
         if isinstance(layer, nn.Conv1d):
             nn.init.kaiming_uniform_(layer.weight)
         elif isinstance(layer, nn.Linear):
-            nn.init.xavier_normal_(layer.weight)
+            nn.init.xavier_uniform_(layer.weight)
