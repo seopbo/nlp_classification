@@ -9,7 +9,7 @@ class Embedding(nn.Module):
     """Embedding class"""
 
     def __init__(self, num_embeddings: int, embedding_dim: int, padding_idx: int = 0, permuting: bool = True,
-                 tracking: bool = True):
+                 tracking: bool = True) -> None:
         """Instantiating Embedding class
 
         Args:
@@ -38,7 +38,7 @@ class Embedding(nn.Module):
 class MaxPool1d(nn.Module):
     """MaxPool1d class"""
 
-    def __init__(self, kernel_size: int, stride: int, tracking: bool = True):
+    def __init__(self, kernel_size: int, stride: int, tracking: bool = True) -> None:
         """Instantiating MaxPool1d class
 
         Args:
@@ -69,7 +69,7 @@ class Conv1d(nn.Module):
     """Conv1dLayer class"""
 
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0,
-                 activation: Callable[[torch.Tensor], torch.Tensor] = F.relu, tracking: bool = True):
+                 activation: Callable[[torch.Tensor], torch.Tensor] = F.relu, tracking: bool = True) -> None:
         """Instantiating Conv1dLayer class
 
         Args:
@@ -104,7 +104,7 @@ class Conv1d(nn.Module):
 class RNNInPipe(nn.Module):
     """RNNPipe class"""
 
-    def __init__(self, permuting: bool = True):
+    def __init__(self, permuting: bool = True) -> None:
         """Instantiating RNNInPipe class
 
         Args:

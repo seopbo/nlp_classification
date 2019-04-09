@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 from model.utils import JamoTokenizer
 from typing import Tuple
 
+
 class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, tokenizer: JamoTokenizer, min_length: int) -> None:
@@ -31,4 +32,3 @@ class Corpus(Dataset):
         length = torch.tensor(len(tokenized2indices))
         label = torch.tensor(self._corpus.iloc[idx]['label'])
         return tokenized2indices, label, length
-
