@@ -5,6 +5,7 @@ from gluonnlp.data import PadSequence
 from model.utils import JamoTokenizer
 from typing import Tuple
 
+
 class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, tokenizer: JamoTokenizer, padder: PadSequence) -> None:
