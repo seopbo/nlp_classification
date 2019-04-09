@@ -29,7 +29,7 @@ class Embedding(nn.Module):
         fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
 
         if self._tracking:
-            fmap_length = (x != self._padding_idx).sum(dim=1)
+            fmap_length = x.ne(self._padding_idx).sum(dim=1)
             return fmap, fmap_length
         else:
             return fmap
