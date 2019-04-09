@@ -74,7 +74,7 @@ class Conv1d(nn.Module):
 
         Args:
             in_channels (int): the number of channels in the input feature map
-            out_channels (int): the number of channels in the output featur emap
+            out_channels (int): the number of channels in the output feature emap
             kernel_size (int): the size of the convolving kernel
             stride (int): stride of the convolution. Default: 1
             padding (int): zero-padding added to both sides of the input. Default: 0
@@ -115,8 +115,7 @@ class RNNInPipe(nn.Module):
 
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> PackedSequence:
         fmap, fmap_length = x
-        if self._permuting:
-            fmap = fmap.permute(0, 2, 1)
+        fmap = fmap.permute(0, 2, 1) if self._permuting else fmap
         return pack_padded_sequence(fmap, fmap_length, batch_first=True)
 
 
