@@ -17,7 +17,7 @@ def get_accuracy(model, dataloader, device):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            score, _ = model(x_mb, _)
+            score, _ = model(x_mb)
             y_mb_hat = torch.max(score, 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
             total_count += x_mb.size()[0]
