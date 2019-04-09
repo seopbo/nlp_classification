@@ -84,8 +84,8 @@ class SelfAttention(nn.Module):
 
         Args:
             input_dim (int): dimension of input, eg) (batch_size, seq_len, input_dim)
-            da (int): dimension of hidden layer
-            r (int): number of aspects
+            da (int): the number of features in hidden layer from self-attention
+            r (int): the number of aspects of self-attention
         """
         super(SelfAttention, self).__init__()
         self._ws1 = nn.Linear(input_dim, da, bias=False)
