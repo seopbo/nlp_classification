@@ -15,6 +15,7 @@ from gluonnlp.data import PadSequence
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 
+
 def evaluate(model, dataloader, loss_fn, device):
     model.eval()
     avg_loss = 0
@@ -28,6 +29,7 @@ def evaluate(model, dataloader, loss_fn, device):
     else:
         avg_loss /= (step + 1)
     return avg_loss
+
 
 def main(cfgpath):
     proj_dir = Path('.')
@@ -104,6 +106,7 @@ def main(cfgpath):
 
     savepath = proj_dir / params['filepath'].get('ckpt')
     torch.save(ckpt, savepath)
+
 
 if __name__ == '__main__':
     fire.Fire(main)
