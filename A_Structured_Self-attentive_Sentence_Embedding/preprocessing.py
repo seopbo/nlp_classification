@@ -27,7 +27,7 @@ plt.hist(list(map(lambda elm: len(elm), tokenized)))
 plt.show()
 
 # making the vocab
-counter = nlp.data.count_tokens(itertools.chain.from_iterable([token for token in tokenized]))
+counter = nlp.data.count_tokens(itertools.chain.from_iterable(tokenized))
 vocab = nlp.Vocab(counter=counter, min_freq=10, bos_token=None, eos_token=None)
 
 # connecting SISG embedding with vocab
