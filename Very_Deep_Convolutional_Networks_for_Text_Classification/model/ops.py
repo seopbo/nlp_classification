@@ -25,7 +25,7 @@ class ConvBlock(nn.Module):
             out_channels (int): out_channels of ConvBlock
         """
         super(ConvBlock, self).__init__()
-        self._equality = (in_channels != out_channels)
+        self._projection = (in_channels != out_channels)
         self._ops = nn.Sequential(nn.Conv1d(in_channels, out_channels, 3, 1, 1),
                                   nn.BatchNorm1d(out_channels),
                                   nn.ReLU(),
@@ -33,13 +33,13 @@ class ConvBlock(nn.Module):
                                   nn.BatchNorm1d(out_channels),
                                   nn.ReLU())
 
-        if self._equality:
+        if self._projection:
             self._shortcut = nn.Sequential(nn.Conv1d(in_channels, out_channels, 1, 1),
                                            nn.BatchNorm1d(out_channels))
         self._bn = nn.BatchNorm1d(out_channels)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        shortcut = self._shortcut(x) if self._equality else x
+        shortcut = self._shortcut(x) if self._projection else x
         fmap = self._ops(x) + shortcut
         fmap = F.relu(self._bn(fmap))
         return fmap

@@ -43,4 +43,3 @@ class VDCNN(nn.Module):
         feature = self._extractor(x)
         score = self._classifier(feature)
         return score
-
