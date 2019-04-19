@@ -3,7 +3,7 @@ The papers were implemented in using korean corpus
 
 ### Classification
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
-+ Hyper-parameter search was not done. Instead, hyper-parameter was arbitrarily selected.
++ Hyper-parameter was arbitrarily selected.
 
 |                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) |
 | :--------------- | :-------: | :------------: | :------: |
@@ -31,6 +31,8 @@ The papers were implemented in using korean corpus
 
 
 ### Named entity recognition
++ Using the [Naver nlp-challange corpus for NER](https://github.com/naver/nlp-challenge/tree/master/missions/ner)
++ Hyper-parameter was arbitrarily selected.
 * [ ] Bidirectional LSTM-CRF Models for Sequence Tagging
 	+ https://arxiv.org/abs/1508.01991
 * [ ] End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF
