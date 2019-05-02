@@ -1,6 +1,7 @@
 import torch
 import json
 import fire
+import pickle
 from pathlib import Path
 from model.data import Corpus
 from model.net import SenCNN
@@ -11,6 +12,9 @@ from tqdm import tqdm
 
 
 def get_accuracy(model, dataloader, device):
+    if model.training:
+        model.eval()
+
     correct_count = 0
     total_count = 0
     for mb in tqdm(dataloader, desc='steps'):
@@ -27,15 +31,18 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    proj_dir = Path('.')
+    proj_dir = Path.cwd()
     with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
     # restoring model
     savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
+    vocab_filepath = params['filepath'].get('vocab')
 
-    vocab = ckpt['vocab']
+    ## common params
+    with open(proj_dir / vocab_filepath, mode='rb') as io:
+        vocab = pickle.load(io)
 
     model = SenCNN(num_classes=params['model'].get('num_classes'), vocab=vocab)
     model.load_state_dict(ckpt['model_state_dict'])
@@ -43,7 +50,7 @@ def main(cfgpath):
 
     # creating dataset, dataloader
     tagger = MeCab()
-    padder = PadSequence(length=params['padder'].get('length'))
+    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.token_to_idx['<pad>'])
     tr_filepath = proj_dir / params['filepath'].get('tr')
     val_filepath = proj_dir / params['filepath'].get('val')
     tst_filepath = proj_dir / params['filepath'].get('tst')
@@ -64,7 +71,7 @@ def main(cfgpath):
     val_acc = get_accuracy(model, val_dl, device)
     tst_acc = get_accuracy(model, tst_dl, device)
 
-    print('tr_acc: {:.2%}, val_acc: {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+    print('tr_acc: {:.2%}, val_acc : {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
 
 
 if __name__ == '__main__':
