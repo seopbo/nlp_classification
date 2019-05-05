@@ -11,6 +11,9 @@ from tqdm import tqdm
 
 
 def get_accuracy(model, dataloader, device):
+    if model.training:
+        model.eval()
+
     correct_count = 0
     total_count = 0
     for mb in tqdm(dataloader, desc='steps'):
@@ -27,7 +30,7 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    proj_dir = Path('.')
+    proj_dir = Path.cwd()
     with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 

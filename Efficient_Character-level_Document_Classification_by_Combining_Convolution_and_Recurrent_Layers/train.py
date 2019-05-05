@@ -15,7 +15,9 @@ from tensorboardX import SummaryWriter
 
 
 def evaluate(model, dataloader, loss_fn, device):
-    model.eval()
+    if model.training:
+        model.eval()
+
     avg_loss = 0
     for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
@@ -29,9 +31,9 @@ def evaluate(model, dataloader, loss_fn, device):
     return avg_loss
 
 
-def main(cfgpath):
+def main(cfgpath, global_step):
     # parsing json
-    proj_dir = Path('.')
+    proj_dir = Path.cwd()
     with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
@@ -66,7 +68,7 @@ def main(cfgpath):
 
     # training
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=1e-4)
+    opt = optim.Adam(params=model.parameters(), lr=learning_rate)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     model.to(device)
@@ -88,7 +90,7 @@ def main(cfgpath):
 
             tr_loss += mb_loss.item()
 
-            if (epoch * len(tr_dl) + step) % 300 == 0:
+            if (epoch * len(tr_dl) + step) % global_step == 0:
                 val_loss = evaluate(model, val_dl, loss_fn, device)
                 writer.add_scalars('loss', {'train': tr_loss / (step + 1),
                                             'validation': val_loss}, epoch * len(tr_dl) + step)
