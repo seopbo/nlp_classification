@@ -29,7 +29,7 @@ def evaluate(model, dataloader, loss_fn, device):
     return avg_loss
 
 
-def main(cfgpath):
+def main(cfgpath, global_step):
     # parsing json
     proj_dir = Path('.')
     with open(proj_dir / cfgpath) as io:
@@ -63,7 +63,7 @@ def main(cfgpath):
 
     # training
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=1e-4)
+    opt = optim.Adam(params=model.parameters(), lr=learning_rate)
     scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
@@ -84,7 +84,7 @@ def main(cfgpath):
 
             tr_loss += mb_loss.item()
 
-            if (epoch * len(tr_dl) + step) % 300 == 0:
+            if (epoch * len(tr_dl) + step) % global_step == 0:
                 val_loss = evaluate(model, val_dl, loss_fn, device)
                 writer.add_scalars('loss', {'train': tr_loss / (step + 1),
                                             'validation': val_loss}, epoch * len(tr_dl) + step)
