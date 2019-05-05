@@ -33,7 +33,7 @@ def evaluate(model, dataloader, loss_fn, device):
 
 def main(cfgpath, global_step):
     # parsing json
-    proj_dir = Path('.')
+    proj_dir = Path.cwd()
     with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 

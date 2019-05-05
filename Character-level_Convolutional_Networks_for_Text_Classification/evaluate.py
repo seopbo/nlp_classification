@@ -30,7 +30,7 @@ def get_accuracy(model, dataloader, device):
 
 def main(cfgpath):
     # parsing json
-    proj_dir = Path('.')
+    proj_dir = Path.cwd()
     with open(proj_dir / cfgpath) as io:
         params = json.loads(io.read())
 
