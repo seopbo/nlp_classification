@@ -11,6 +11,9 @@ from tqdm import tqdm
 
 
 def get_accuracy(model, dataloader, device):
+    if model.training:
+        model.eval()
+
     correct_count = 0
     total_count = 0
     for mb in tqdm(dataloader, desc='steps'):

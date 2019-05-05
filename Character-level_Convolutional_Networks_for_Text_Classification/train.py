@@ -15,7 +15,9 @@ from tensorboardX import SummaryWriter
 
 
 def evaluate(model, dataloader, loss_fn, device):
-    model.eval()
+    if model.training:
+        model.eval()
+
     avg_loss = 0
     for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
         x_mb, y_mb = map(lambda elm: elm.to(device), mb)
