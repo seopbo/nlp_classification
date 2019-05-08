@@ -7,7 +7,7 @@
             "embedding_dim": 16,
             "k_max": 8},
   "padder": {"length": 300},
-  "training": {"epochs": 10,
+  "training": {"epochs": 5,
                "batch_size": 128,
                "learning_rate": 1e-3}
 }
