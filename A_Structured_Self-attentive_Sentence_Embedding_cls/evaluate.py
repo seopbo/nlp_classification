@@ -1,6 +1,7 @@
 import json
 import fire
 import torch
+import pickle
 from pathlib import Path
 from torch.utils.data import DataLoader
 from model.utils import collate_fn
@@ -39,7 +40,11 @@ def main(cfgpath):
     savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
 
-    vocab = ckpt['vocab']
+    ## common params
+    vocab_filepath = params['filepath'].get('vocab')
+    with open(vocab_filepath, mode='rb') as io:
+        vocab = pickle.load(io)
+
     num_classes = params['model'].get('num_classes')
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
     da = params['model'].get('da')

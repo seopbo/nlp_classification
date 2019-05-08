@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.ops import PreEmbedding, RNNInPipe, BiLSTM, SelfAttention
+from model.ops import PreEmbedding, Linker, BiLSTM, SelfAttention
 from gluonnlp import Vocab
 from typing import Tuple
 
@@ -21,7 +21,7 @@ class SAN(nn.Module):
         """
         super(SAN, self).__init__()
         self._embedding = PreEmbedding(vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
-        self._pipe = RNNInPipe(permuting=False)
+        self._pipe = Linker(permuting=False)
         self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
         self._fc1 = nn.Linear(2 * lstm_hidden_dim * r, hidden_dim)
