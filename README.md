@@ -10,7 +10,7 @@ The papers were implemented in using korean corpus
 | SenCNN           |  92.87%  |     86.87%     |  86.38%  |
 | CharCNN          | 85.63% | 81.58% | 81.58% |
 | ConvRec          | 86.80% | 82.66% | 82.29% |
-| VDCNN            | 87.20% | 84.60% | 84.50% |
+| VDCNN            | 86.31% | 83.87% | 83.90% |
 | SAN | 93.90% | 86.52% | 86.35% |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (SenCNN)
