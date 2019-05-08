@@ -7,7 +7,7 @@ The papers were implemented in using korean corpus
 
 |                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) |
 | :--------------- | :-------: | :------------: | :------: |
-| SenCNN           |  92.22%  |     86.81%     |  86.48%  |
+| SenCNN           |  92.87%  |     86.87%     |  86.38%  |
 | CharCNN          | 89.30% | 82.61% | 82.40% |
 | ConvRec          | 89.29% | 82.94% | 82.89% |
 | VDCNN            | 87.20% | 84.60% | 84.50% |
