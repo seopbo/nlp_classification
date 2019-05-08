@@ -101,16 +101,16 @@ class Conv1d(nn.Module):
             return fmap
 
 
-class RNNInPipe(nn.Module):
+class Linker(nn.Module):
     """RNNPipe class"""
 
     def __init__(self, permuting: bool = True) -> None:
-        """Instantiating RNNInPipe class
+        """Instantiating Linker class
 
         Args:
             permuting (bool): permuting (n, c, l) -> (n, l, c). Default: True
         """
-        super(RNNInPipe, self).__init__()
+        super(Linker, self).__init__()
         self._permuting = permuting
 
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> PackedSequence:

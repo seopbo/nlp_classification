@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.ops import Embedding, Conv1d, MaxPool1d, RNNInPipe, BiLSTM
+from model.ops import Embedding, Conv1d, MaxPool1d, Linker, BiLSTM
 from typing import Dict
 
 
@@ -21,7 +21,7 @@ class ConvRec(nn.Module):
                                   MaxPool1d(2, 2, tracking=True),
                                   Conv1d(hidden_dim, hidden_dim, 3, 1, 0, F.relu, tracking=True),
                                   MaxPool1d(2, 2, tracking=True),
-                                  RNNInPipe(permuting=True),
+                                  Linker(permuting=True),
                                   BiLSTM(hidden_dim, hidden_dim, using_sequence=False),
                                   nn.Dropout(),
                                   nn.Linear(in_features=2 * hidden_dim, out_features=num_classes))
