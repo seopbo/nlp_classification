@@ -35,10 +35,9 @@ def evaluate(model, dataloader, loss_fn, device):
 
 
 def regularize(attn_mat, r, device):
-    with torch.no_grad():
-        sim_mat = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
-        identity = torch.eye(r).to(device)
-        p = torch.norm(sim_mat - identity, dim=(1, 2)).mean()
+    sim_mat = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
+    identity = torch.eye(r).to(device)
+    p = torch.norm(sim_mat - identity, dim=(1, 2)).mean()
     return p
 
 
