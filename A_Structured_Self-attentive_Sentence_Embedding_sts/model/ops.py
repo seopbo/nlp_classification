@@ -37,7 +37,7 @@ class PreEmbedding(nn.Module):
 
 class Linker(nn.Module):
     """Linker class"""
-    def __init__(self, permuting: bool = True):
+    def __init__(self, permuting: bool = True) -> None:
         """Instantiating Linker class
 
         Args:
@@ -121,3 +121,4 @@ class SentenceEncoder(nn.Module):
         attn_mat = self._attention(hiddens)
         m = torch.bmm(attn_mat, hiddens)
         return m, attn_mat
+

@@ -17,14 +17,16 @@ def get_accuracy(model, dataloader, device):
 
     correct_count = 0
     total_count = 0
+
     for mb in tqdm(dataloader, desc='steps'):
-        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
+        queries_a_mb, queries_b_mb, y_mb = map(lambda elm: elm.to(device), mb)
+        queries_mb = (queries_a_mb, queries_b_mb)
 
         with torch.no_grad():
-            score, _ = model(x_mb)
+            score, _, _ = model(queries_mb)
             y_mb_hat = torch.max(score, 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
-            total_count += x_mb.size()[0]
+            total_count += y_mb.size()[0]
     else:
         acc = correct_count / total_count
     return acc
@@ -47,12 +49,12 @@ def main(cfgpath):
 
     num_classes = params['model'].get('num_classes')
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
+    hidden_dim = params['model'].get('hidden_dim')
     da = params['model'].get('da')
     r = params['model'].get('r')
-    hidden_dim = params['model'].get('hidden_dim')
 
-    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim, hidden_dim=hidden_dim,
+                da=da, r=r, vocab=vocab)
     model.load_state_dict(ckpt['model_state_dict'])
     model.eval()
 
