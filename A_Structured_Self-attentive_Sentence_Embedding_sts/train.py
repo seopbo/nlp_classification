@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from pathlib import Path
 from torch import optim
-from torch.optim.lr_scheduler import  ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from mecab import MeCab
 from model.utils import collate_fn
@@ -19,13 +19,12 @@ def evaluate(model, dataloader, loss_fn, device):
     if model.training:
         model.eval()
 
-    model.eval()
     avg_loss = 0
     for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
-        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
+        queries_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
-            score, _ = model(x_mb)
+            score, _, _ = model(queries_mb)
             mb_loss = loss_fn(score, y_mb)
         avg_loss += mb_loss.item()
     else:
@@ -40,7 +39,7 @@ def regularize(attn_mat, r, device):
     p = torch.norm(sim_mat - identity, dim=(1, 2)).mean()
     return p
 
-
+cfgpath = './experiments/config.json'
 def main(cfgpath, global_step):
     # parsing json
     proj_dir = Path.cwd()
@@ -61,7 +60,6 @@ def main(cfgpath, global_step):
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
     da = params['model'].get('da')
     r = params['model'].get('r')
-    hidden_dim = params['model'].get('hidden_dim')
 
     ## dataset, dataloader params
     batch_size = params['training'].get('batch_size')
@@ -70,7 +68,7 @@ def main(cfgpath, global_step):
 
     # creating model
     model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+                da=da, r=r, vocab=vocab)
 
     # creating dataset, dataloader
     tr_ds = Corpus(tr_filepath, tokenizer, vocab)
@@ -95,13 +93,15 @@ def main(cfgpath, global_step):
 
         model.train()
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
-            x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
+            queries_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
             opt.zero_grad()
-            score, attn_mat = model(x_mb)
-            reg = regularize(attn_mat, r, device)
+            score, queries_a_attn_mat, queries_b_attn_mat = model(queries_mb)
+            a_reg = regularize(queries_a_attn_mat, r, device)
+            b_reg = regularize(queries_b_attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
-            mb_loss.add_(reg)
+            mb_loss.add_(a_reg)
+            mb_loss.add_(b_reg)
             mb_loss.backward()
             opt.step()
 
@@ -128,3 +128,8 @@ def main(cfgpath, global_step):
 
 if __name__ == '__main__':
     fire.Fire(main)
+
+
+x_mb, y_mb, _ = next(iter(tr_dl))
+
+model(x_mb)[0].shape

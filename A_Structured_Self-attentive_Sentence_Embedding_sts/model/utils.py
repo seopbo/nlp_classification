@@ -3,19 +3,22 @@ from torch.nn.utils.rnn import pad_sequence
 from typing import List, Tuple
 
 
-def collate_fn(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
-        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """custom collate_fn for DataLoader
+def collate_fn(data: List[Tuple[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor], torch.Tensor]]) \
+        -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
 
-    Args:
-        data (list): list of torch.Tensors
+    data = list(zip(*data))
+    queries_a, queries_b, is_duplicate = data
 
-    Returns:
-        data (tuple): tuple of torch.Tensors
-    """
-    data = sorted(data, key=lambda elm: elm[2], reverse=True)
-    indices, labels, lengths = zip(*data)
-    indices = pad_sequence(indices, batch_first=True)
-    labels = torch.stack(labels, 0)
-    lengths = torch.stack(lengths, 0)
-    return indices, labels, lengths
+    queries_a = sorted(queries_a, key=lambda elm: elm[1], reverse=True)
+    queries_a, queries_a_len = zip(*queries_a)
+    queries_a = pad_sequence(queries_a, batch_first=True)
+    queries_a_len = torch.stack(queries_a_len, 0)
+
+    queries_b = sorted(queries_b, key=lambda elm: elm[1], reverse=True)
+    queries_b, queries_b_len = zip(*queries_b)
+    queries_b = pad_sequence(queries_b, batch_first=True)
+    queries_b_len = torch.stack(queries_b_len, 0)
+
+    is_duplicate = torch.stack(is_duplicate, 0)
+
+    return (queries_a, queries_b), is_duplicate, (queries_a_len, queries_b_len)

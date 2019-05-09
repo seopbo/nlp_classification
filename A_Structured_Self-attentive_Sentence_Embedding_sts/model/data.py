@@ -16,7 +16,7 @@ class Corpus(Dataset):
             tokenizer (mecab.MeCab): the instance of mecab.Mecab
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
-        self._corpus = pd.read_csv(filepath, sep='\t').loc[:, ['document', 'label']]
+        self._corpus = pd.read_csv(filepath)
         self._tokenizer = tokenizer
         self._vocab = vocab
 
@@ -24,8 +24,11 @@ class Corpus(Dataset):
         return len(self._corpus)
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        tokenized = self._tokenizer.morphs(self._corpus.iloc[idx]['document'])
-        tokenized2indices = torch.tensor([self._vocab.token_to_idx[token] for token in tokenized])
-        label = torch.tensor(self._corpus.iloc[idx]['label'])
-        length = torch.tensor(len(tokenized2indices))
-        return tokenized2indices, label, length
+        query_a = self._tokenizer.morphs(self._corpus.iloc[idx]['question1'])
+        query_b = self._tokenizer.morphs(self._corpus.iloc[idx]['question2'])
+        query_a_indices = torch.tensor([self._vocab.token_to_idx[token] for token in query_a])
+        query_b_indices = torch.tensor([self._vocab.token_to_idx[token] for token in query_b])
+        is_duplicate = torch.tensor(self._corpus.iloc[idx]['is_duplicate'])
+        query_a_length = torch.tensor(len(query_a_indices))
+        query_b_length = torch.tensor(len(query_b_indices))
+        return (query_a_indices, query_a_length), (query_b_indices, query_b_length), is_duplicate

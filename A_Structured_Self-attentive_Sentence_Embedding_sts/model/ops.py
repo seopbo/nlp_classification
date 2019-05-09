@@ -95,3 +95,29 @@ class SelfAttention(nn.Module):
         attn_mat = F.softmax(self._ws2(torch.tanh(self._ws1(h))), dim=1)
         attn_mat = attn_mat.permute(0, 2, 1)
         return attn_mat
+
+
+class SentenceEncoder(nn.Module):
+    """SentenceEncoder class"""
+    def __init__(self, lstm_hidden_dim: int, da: int, r: int, vocab: Vocab) -> None:
+        """Instantiating SentenceEncoder class
+
+        Args:
+            lstm_hidden_dim (int): the number of features in the hidden states in bi-directional lstm
+            da (int): the number of features in hidden layer from self-attention
+            r (int): the number of aspects of self-attention
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+        """
+        super(SentenceEncoder, self).__init__()
+        self._embedding = PreEmbedding(vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
+        self._pipe = Linker(permuting=False)
+        self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
+        self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        fmap = self._embedding(x)
+        fmap = self._pipe(fmap)
+        hiddens = self._bilstm(fmap)
+        attn_mat = self._attention(hiddens)
+        m = torch.bmm(attn_mat, hiddens)
+        return m, attn_mat
