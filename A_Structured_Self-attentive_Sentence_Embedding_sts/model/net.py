@@ -20,7 +20,7 @@ class SAN(nn.Module):
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SAN, self).__init__()
-        self._encoder = SentenceEncoder(lstm_hidden_dim, da, r, vocab)
+        self._encoder = SentenceEncoder(lstm_hidden_dim, da, r, 1, vocab)
         self._wa = nn.Parameter(torch.randn((lstm_hidden_dim * 2, lstm_hidden_dim * 2)))
         self._wb = nn.Parameter(torch.randn((lstm_hidden_dim * 2, lstm_hidden_dim * 2)))
         self._fc1 = nn.Linear(r * lstm_hidden_dim * 2, hidden_dim)
