@@ -25,8 +25,13 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1703.03130
 
 ### Semantic textual similarity
-+ Using the https://github.com/songys/Question_pair
-+ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128)
++ Creating dataset from https://github.com/songys/Question_pair 
++ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
+
+|                  | Train ACC (6,060) | Validation ACC (1,516) |
+| :--------------- | :-------: | :------------: |
+| SenCNN           |  91.93%  |     81.46%     |
+
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
   + https://arxiv.org/abs/1703.03130
