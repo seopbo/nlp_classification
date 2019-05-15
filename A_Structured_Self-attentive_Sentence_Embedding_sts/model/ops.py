@@ -15,7 +15,7 @@ class PreEmbedding(nn.Module):
         Args:
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
             padding_idx (int): denote padding_idx to padding token
-            freeze (bool): freezing weigths. Default: False
+            freeze (bool): freezing weights. Default: False
             permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
             tracking (bool): tracking length of sequence. Default: True
         """
@@ -24,6 +24,36 @@ class PreEmbedding(nn.Module):
         self._permuting = permuting
         self._tracking = tracking
         self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()), freeze=freeze)
+
+    def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
+
+        if self._tracking:
+            fmap_length = x.ne(self._padding_idx).sum(dim=1)
+            return fmap, fmap_length
+        else:
+            return fmap
+
+
+class Embedding(nn.Module):
+    """Embedding class"""
+    def __init__(self, vocab: Vocab, padding_idx: int = 0, embedding_dim: int = 64,
+                 permuting: bool = True, tracking: bool = True) -> None:
+        """Instantiating Embedding class
+
+        Args:
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            padding_idx (int): denote padding_idx to padding token
+            embedding_dim (int): the number of embedding dimension
+            permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
+            tracking (bool): tracking length of sequence. Default: True
+        """
+        super(Embedding, self).__init__()
+        self._padding_idx = padding_idx
+        self._permuting = permuting
+        self._tracking = tracking
+        self._ops = nn.Embedding(num_embeddings=len(vocab), embedding_dim=embedding_dim,
+                                 padding_idx=self._padding_idx)
 
     def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
@@ -110,7 +140,8 @@ class SentenceEncoder(nn.Module):
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SentenceEncoder, self).__init__()
-        self._embedding = PreEmbedding(vocab, padding_idx=padding_idx, freeze=False, permuting=False, tracking=True)
+        self._embedding = PreEmbedding(vocab, padding_idx=padding_idx, freeze=False,
+                                       permuting=False, tracking=True)
         self._pipe = Linker(permuting=False)
         self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
