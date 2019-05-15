@@ -60,7 +60,6 @@ def main(cfgpath):
 
     # creating dataset, dataloader
     tokenizer = MeCab()
-    tst_filepath = proj_dir / params['filepath'].get('tst')
     tr_filepath = proj_dir / params['filepath'].get('tr')
     val_filepath = proj_dir / params['filepath'].get('val')
     batch_size = params['training'].get('batch_size')
@@ -69,17 +68,14 @@ def main(cfgpath):
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
     val_ds = Corpus(val_filepath, tokenizer, vocab)
     val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
-    tst_ds = Corpus(tst_filepath, tokenizer, vocab)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
     tr_acc = get_accuracy(model, tr_dl, device)
     val_acc = get_accuracy(model, val_dl, device)
-    tst_acc = get_accuracy(model, tst_dl, device)
 
-    print('tr_acc: {:.2%}, val_acc: {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+    print('tr_acc: {:.2%}, val_acc: {:.2%}'.format(tr_acc, val_acc))
 
 
 if __name__ == '__main__':

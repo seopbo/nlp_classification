@@ -10,10 +10,10 @@ class Corpus(Dataset):
     """Corpus class"""
     def __init__(self, filepath: str, tokenizer: MeCab, vocab: Vocab) -> None:
         """Instantiating Corpus class
-
         Args:
             filepath (str): filepath
             tokenizer (mecab.MeCab): the instance of mecab.Mecab
+            padder (gluonnlp.data.PadSequence): the instance of gluonnlp.data.PadSequence
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         self._corpus = pd.read_csv(filepath)

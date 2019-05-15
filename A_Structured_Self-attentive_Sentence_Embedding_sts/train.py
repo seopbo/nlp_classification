@@ -99,13 +99,14 @@ def main(cfgpath, global_step):
             queries_a_mb, queries_b_mb, y_mb = map(lambda elm: elm.to(device), mb)
             queries_mb = (queries_a_mb, queries_b_mb)
 
+
             opt.zero_grad()
             score, queries_a_attn_mat, queries_b_attn_mat = model(queries_mb)
             a_reg = regularize(queries_a_attn_mat, r, device)
             b_reg = regularize(queries_b_attn_mat, r, device)
             mb_loss = loss_fn(score, y_mb)
-            mb_loss.add_(.5 * a_reg)
-            mb_loss.add_(.5 * b_reg)
+            mb_loss.add_(a_reg)
+            mb_loss.add_(b_reg)
             mb_loss.backward()
             opt.step()
 

@@ -5,11 +5,11 @@
                "vocab": "data/vocab.pkl",
                "ckpt": "checkpoint/ckpt.tar"},
   "model": {"num_classes": 2,
-            "lstm_hidden_dim": 300,
-            "da": 150,
+            "lstm_hidden_dim": 128,
+            "da": 128,
             "r": 32,
-            "hidden_dim":  4000},
-  "training": {"epochs": 10,
-               "batch_size": 128,
-               "learning_rate": 3e-4}
+            "hidden_dim":  512},
+  "training": {"epochs": 5,
+               "batch_size": 64,
+               "learning_rate": 1e-4}
 }

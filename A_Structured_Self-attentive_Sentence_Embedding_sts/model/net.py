@@ -11,7 +11,6 @@ class SAN(nn.Module):
 
     def __init__(self, num_classes: int, lstm_hidden_dim: int, hidden_dim: int, da: int, r: int, vocab: Vocab) -> None:
         """
-
         Args:
             num_classes (int): the number of classes
             lstm_hidden_dim (int): the number of features in the hidden states in bi-directional lstm
@@ -27,14 +26,15 @@ class SAN(nn.Module):
         self._fc1 = nn.Linear(r * lstm_hidden_dim * 2, hidden_dim)
         self._fc2 = nn.Linear(hidden_dim, num_classes)
 
-    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: Tuple[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor]]) ->\
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         query_a, query_b = x
         query_a_emb, query_a_attn_mat = self._encoder(query_a)
         query_b_emb, query_b_attn_mat = self._encoder(query_b)
-        fa = query_b_emb @ self._wa
+        fa = query_a_emb @ self._wa
         fb = query_b_emb @ self._wb
         fab = fa * fb
-        fab = fab.view(fab.size()[0], -1)
+        fab = fab.reshape(fab.size()[0], -1)
         feature = F.relu(self._fc1(fab))
         score = self._fc2(feature)
 
