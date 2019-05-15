@@ -30,7 +30,7 @@ The papers were implemented in using korean corpus
 
 |                  | Train ACC (6,060) | Validation ACC (1,516) |
 | :--------------- | :-------: | :------------: |
-| SenCNN           |  91.93%  |     81.46%     |
+| SAN           |  91.93%  |     81.46%     |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
