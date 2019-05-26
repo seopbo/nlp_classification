@@ -15,16 +15,14 @@ def get_accuracy(model, dataloader, device):
         model.eval()
 
     correct_count = 0
-    total_count = 0
     for mb in tqdm(dataloader, desc='steps'):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
             y_mb_hat = torch.max(model(x_mb), 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
-            total_count += x_mb.size()[0]
     else:
-        acc = correct_count / total_count
+        acc = correct_count / len(dataloader.dataset)
     return acc
 
 

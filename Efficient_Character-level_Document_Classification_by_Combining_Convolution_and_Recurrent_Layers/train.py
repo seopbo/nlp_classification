@@ -5,13 +5,14 @@ import torch.nn as nn
 from pathlib import Path
 from torch import optim
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
 from model.utils import collate_fn
 from model.utils import JamoTokenizer
 from model.data import Corpus
 from model.net import ConvRec
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
+
 
 
 def evaluate(model, dataloader, loss_fn, device):

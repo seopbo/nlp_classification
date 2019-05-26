@@ -118,7 +118,6 @@ def collate_fn(data: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]) -> \
     Returns:
         data (tuple): tuple of torch.Tensors
     """
-    data = sorted(data, key=lambda elm: elm[2], reverse=True)
     indices, labels, lengths = zip(*data)
     indices = pad_sequence(indices, batch_first=True)
     labels = torch.stack(labels, 0)

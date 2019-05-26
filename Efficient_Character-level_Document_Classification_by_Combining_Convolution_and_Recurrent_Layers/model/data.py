@@ -12,7 +12,7 @@ class Corpus(Dataset):
 
         Args:
             filepath (str): filepath
-            tokenizer (JamoTokenizer): instance of JamoTokenizer
+            tokenizer (JamoTokenizer): the instance of JamoTokenizer
             min_length (int): minimum length of query
                              (if length is lower than min_length, the sequences is padded to min_length)
         """
