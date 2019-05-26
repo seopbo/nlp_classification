@@ -13,7 +13,7 @@ from model.data import Corpus
 from model.net import SenCNN
 from gluonnlp.data import PadSequence
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 
 
 def evaluate(model, dataloader, loss_fn, device):
@@ -60,8 +60,8 @@ def main(cfgpath, global_step):
     model = SenCNN(num_classes=num_classes, vocab=vocab)
 
     # creating dataset, dataloader
-    tokenizer = MeCab()
-    padder = PadSequence(length=length, pad_val=vocab.token_to_idx['<pad>'])
+    tokenizer = MeCab().morphs
+    padder = PadSequence(length=length, pad_val=vocab.to_indices('<pad>'))
     tr_ds = Corpus(tr_filepath, vocab, tokenizer, padder)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_ds = Corpus(val_filepath, vocab, tokenizer, padder)
@@ -95,6 +95,7 @@ def main(cfgpath, global_step):
                 val_loss = evaluate(model, val_dl, loss_fn, device)
                 writer.add_scalars('loss', {'train': tr_loss / (step + 1),
                                             'val': val_loss}, epoch * len(tr_dl) + step)
+
                 model.train()
         else:
             tr_loss /= (step + 1)

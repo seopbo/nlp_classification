@@ -16,16 +16,16 @@ def get_accuracy(model, dataloader, device):
         model.eval()
 
     correct_count = 0
-    total_count = 0
+
     for mb in tqdm(dataloader, desc='steps'):
         x_mb, y_mb = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
             y_mb_hat = torch.max(model(x_mb), 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
-            total_count += x_mb.size()[0]
+
     else:
-        acc = correct_count / total_count
+        acc = correct_count / len(dataloader.dataset)
     return acc
 
 
@@ -49,8 +49,8 @@ def main(cfgpath):
     model.eval()
 
     # creating dataset, dataloader
-    tagger = MeCab()
-    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.token_to_idx['<pad>'])
+    tagger = MeCab().morphs
+    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.to_indices('<pad>'))
     tr_filepath = proj_dir / params['filepath'].get('tr')
     val_filepath = proj_dir / params['filepath'].get('val')
     tst_filepath = proj_dir / params['filepath'].get('tst')
