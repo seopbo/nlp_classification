@@ -13,7 +13,8 @@ class Corpus(Dataset):
 
         Args:
             filepath (str): filepath
-            padder (gluonnlp.data.PadSequence): instance of gluonnlp.data.PadSequence
+            tokenizer (JamoTokenizer): the instance of JamoTokenizer
+            padder (gluonnlp.data.PadSequence): the instance of gluonnlp.data.PadSequence
         """
         self._corpus = pd.read_csv(filepath, sep='\t').loc[:, ['document', 'label']]
         self._padder = padder

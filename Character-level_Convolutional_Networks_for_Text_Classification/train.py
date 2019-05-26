@@ -6,12 +6,12 @@ from pathlib import Path
 from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from model.utils import JamoTokenizer
 from model.data import Corpus
 from model.net import CharCNN
 from gluonnlp.data import PadSequence
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
 
 
 def evaluate(model, dataloader, loss_fn, device):
