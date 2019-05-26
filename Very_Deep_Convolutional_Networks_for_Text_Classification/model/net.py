@@ -10,7 +10,7 @@ class VDCNN(nn.Module):
         """Instantiating VDCNN class
 
         Args:
-            num_classes (int): number of classes
+            num_classes (int): the number of classes
             embedding_dim (int): embedding dimension of token
             k_max (int): parameter of k-max pooling following last convolution block
             dic (dict): token2idx
