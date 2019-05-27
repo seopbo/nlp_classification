@@ -7,12 +7,12 @@ from pathlib import Path
 from torch import optim
 from torch.optim.lr_scheduler import  ReduceLROnPlateau
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from mecab import MeCab
 from model.utils import collate_fn
 from model.data import Corpus
 from model.net import SAN
 from tqdm import tqdm
-from tensorboardX import SummaryWriter
 
 
 def evaluate(model, dataloader, loss_fn, device):
@@ -52,7 +52,7 @@ def main(cfgpath, global_step):
     vocab_filepath = params['filepath'].get('vocab')
 
     ## common params
-    tokenizer = MeCab()
+    tokenizer = MeCab().morphs
     with open(vocab_filepath, mode='rb') as io:
         vocab = pickle.load(io)
 
@@ -87,7 +87,7 @@ def main(cfgpath, global_step):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     model.to(device)
-    writer = SummaryWriter(log_dir='./runs/exp')
+    writer = SummaryWriter('./runs/exp')
 
     for epoch in tqdm(range(epochs), desc='epochs'):
 

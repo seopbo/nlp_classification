@@ -49,7 +49,7 @@ class Linker(nn.Module):
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> PackedSequence:
         fmap, fmap_length = x
         fmap = fmap.permute(0, 2, 1) if self._permuting else fmap
-        return pack_padded_sequence(fmap, fmap_length, batch_first=True)
+        return pack_padded_sequence(fmap, fmap_length, batch_first=True, enforce_sorted=False)
 
 
 class BiLSTM(nn.Module):
