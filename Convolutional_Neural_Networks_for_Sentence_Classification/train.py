@@ -74,7 +74,7 @@ def main(cfgpath, global_step):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    writer = SummaryWriter(log_dir='./runs/exp')
+    writer = SummaryWriter('./runs/exp')
     for epoch in tqdm(range(epochs), desc='epochs'):
 
         tr_loss = 0

@@ -7,19 +7,25 @@ from typing import Tuple
 
 class MultiChannelEmbedding(nn.Module):
     """MultiChannelEmbedding class"""
-    def __init__(self, vocab: Vocab) -> None:
+    def __init__(self, vocab: Vocab, word_dropout_ratio: float = .2) -> None:
         """Instantiating MultiChannelEmbedding class
 
         Args:
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            word_dropout_ratio (float): ratio of replacing token with "<unk>" in the sequence
         """
         super(MultiChannelEmbedding, self).__init__()
         self._static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
                                                     freeze=True, padding_idx=vocab.to_indices(vocab.padding_token))
         self._non_static = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
                                                         freeze=False, padding_idx=vocab.to_indices(vocab.padding_token))
+        self._word_dropout_ratio = word_dropout_ratio
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        if self.training:
+            m = x.bernoulli(self._word_dropout_ratio)
+            x = torch.where(m == 1, torch.tensor(0).to(x.device), x)
+
         static = self._static(x).permute(0, 2, 1)
         non_static = self._non_static(x).permute(0, 2, 1)
         return static, non_static
