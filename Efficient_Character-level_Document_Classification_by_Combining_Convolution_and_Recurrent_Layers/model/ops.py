@@ -8,7 +8,7 @@ from typing import Tuple, Union, Callable
 class Embedding(nn.Module):
     """Embedding class"""
 
-    def __init__(self, num_embeddings: int, embedding_dim: int, padding_idx: int = 0, permuting: bool = True,
+    def __init__(self, num_embeddings: int, embedding_dim: int, padding_idx: int = 1, permuting: bool = True,
                  tracking: bool = True) -> None:
         """Instantiating Embedding class
 
