@@ -61,7 +61,7 @@ def main(cfgpath, global_step):
 
     # creating dataset, dataloader
     tokenizer = MeCab().morphs
-    padder = PadSequence(length=length, pad_val=vocab.to_indices('<pad>'))
+    padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
     tr_ds = Corpus(tr_filepath, vocab, tokenizer, padder)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_ds = Corpus(val_filepath, vocab, tokenizer, padder)
