@@ -15,7 +15,7 @@ class CharCNN(nn.Module):
             dic (dict): token2idx
         """
         super(CharCNN, self).__init__()
-        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, padding_idx=0),
+        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, padding_idx=1),
                                         Permute(),
                                         nn.Conv1d(in_channels=embedding_dim, out_channels=256, kernel_size=7),
                                         nn.ReLU(),
