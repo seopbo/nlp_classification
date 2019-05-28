@@ -5,14 +5,13 @@ import torch.nn as nn
 from pathlib import Path
 from torch import optim
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
 from model.utils import collate_fn
 from model.utils import JamoTokenizer
 from model.data import Corpus
 from model.net import ConvRec
 from tqdm import tqdm
-
 
 
 def evaluate(model, dataloader, loss_fn, device):
@@ -73,7 +72,7 @@ def main(cfgpath, global_step):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 
     model.to(device)
-    writer = SummaryWriter(log_dir='./runs/exp')
+    writer = SummaryWriter('./runs/exp')
 
     for epoch in tqdm(range(epochs), desc='epochs'):
 
