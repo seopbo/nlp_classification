@@ -58,7 +58,7 @@ def main(cfgpath, global_step):
     model = VDCNN(num_classes=num_classes, embedding_dim=embedding_dim, k_max=k_max, dic=tokenizer.token2idx)
 
     # creating dataset, dataloader
-    padder = PadSequence(length)
+    padder = PadSequence(length, pad_val=vocab.to_indices(vocab.padding_token))
     tr_ds = Corpus(tr_filepath, tokenizer, padder)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_ds = Corpus(val_filepath, tokenizer, padder)
