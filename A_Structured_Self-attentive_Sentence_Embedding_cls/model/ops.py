@@ -23,7 +23,8 @@ class PreEmbedding(nn.Module):
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking
-        self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()), freeze=freeze)
+        self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
+                                                 freeze=freeze, padding_idx=self._padding_idx)
 
     def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
