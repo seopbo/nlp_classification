@@ -8,7 +8,7 @@ from typing import Tuple, Union
 
 class PreEmbedding(nn.Module):
     """PreEmbedding class"""
-    def __init__(self, vocab: Vocab, padding_idx: int = 0, freeze: bool = True,
+    def __init__(self, vocab: Vocab, padding_idx: int = 1, freeze: bool = True,
                  permuting: bool = True, tracking: bool = True) -> None:
         """Instantiating PreEmbedding class
 
