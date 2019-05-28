@@ -27,7 +27,7 @@ class JamoTokenizer:
 
         self._token2idx = sorted(
             list(set(self._chosung_list + self._jungsung_list + self._jongsung_list)))
-        self._token2idx = ['<pad>', '<eng>', '<num>', '<unk>', '<not>'] + self._token2idx
+        self._token2idx = ['<unk>', '<pad>', '<eng>', '<num>', '<not>'] + self._token2idx
         self._token2idx = {token: idx for idx, token in enumerate(self._token2idx)}
 
     def tokenize(self, string: str) -> List[str]:
