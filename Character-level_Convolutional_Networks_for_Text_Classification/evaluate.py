@@ -36,7 +36,7 @@ def main(cfgpath):
     savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
     tokenizer = JamoTokenizer()
-    padder = PadSequence(params['padder'].get('length'))
+    padder = PadSequence(params['padder'].get('length'), pad_val=tokenizer.token2idx.get('<pad>'))
 
     model = CharCNN(num_classes=params['model'].get('num_classes'),
                     embedding_dim=params['model'].get('embedding_dim'),
