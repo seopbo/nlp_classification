@@ -1,0 +1,15 @@
+{
+  "filepath": {"tr": "data/tr.pkl",
+               "val": "data/val.pkl",
+               "token_vocab": "data/token_vocab.pkl",
+               "label_vocab": "data/label_vocab.pkl",
+               "ckpt": "checkpoint/ckpt.tar"},
+  "model": {"num_classes": 2,
+            "lstm_hidden_dim": 128,
+            "da": 128,
+            "r": 6,
+            "hidden_dim": 256},
+  "training": {"epochs": 5,
+               "batch_size": 128,
+               "learning_rate": 1e-3}
+}
