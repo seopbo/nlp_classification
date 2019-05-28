@@ -16,7 +16,7 @@ class ConvRec(nn.Module):
             dic (dict): token2idx
         """
         super(ConvRec, self).__init__()
-        self._ops = nn.Sequential(Embedding(len(dic), embedding_dim, 0, permuting=True, tracking=True),
+        self._ops = nn.Sequential(Embedding(len(dic), embedding_dim, 1, permuting=True, tracking=True),
                                   Conv1d(embedding_dim, hidden_dim, 5, 1, 0, F.relu, tracking=True),
                                   MaxPool1d(2, 2, tracking=True),
                                   Conv1d(hidden_dim, hidden_dim, 3, 1, 0, F.relu, tracking=True),
