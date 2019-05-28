@@ -16,7 +16,7 @@ class VDCNN(nn.Module):
             dic (dict): token2idx
         """
         super(VDCNN, self).__init__()
-        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, 0),
+        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, 1),
                                         Permute(),
                                         nn.Conv1d(embedding_dim, 64, 3, 1, 1),
                                         ConvBlock(64, 64),
