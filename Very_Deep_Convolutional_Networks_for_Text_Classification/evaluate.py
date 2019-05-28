@@ -36,7 +36,7 @@ def main(cfgpath):
     savepath = proj_dir / params['filepath'].get('ckpt')
     ckpt = torch.load(savepath)
     tokenizer = JamoTokenizer()
-    padder = PadSequence(params['padder'].get('length'), pad_val=vocab.to_indices(vocab.padding_token))
+    padder = PadSequence(params['padder'].get('length'), pad_val=tokenizer.token2idx.get('<pad>'))
     k_max = params['model'].get('k_max')
 
     model = VDCNN(num_classes=params['model'].get('num_classes'),
