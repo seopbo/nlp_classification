@@ -50,7 +50,7 @@ def main(cfgpath):
 
     # creating dataset, dataloader
     tagger = MeCab().morphs
-    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.to_indices('<pad>'))
+    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.to_indices(vocab.padding_token))
     tr_filepath = proj_dir / params['filepath'].get('tr')
     val_filepath = proj_dir / params['filepath'].get('val')
     tst_filepath = proj_dir / params['filepath'].get('tst')
