@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from pathlib import Path
 from torch import optim
-from torch.optim.lr_scheduler import  ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from mecab import MeCab
