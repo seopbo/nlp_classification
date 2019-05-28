@@ -68,7 +68,7 @@ class MaxPool1d(nn.Module):
 class Conv1d(nn.Module):
     """Conv1dLayer class"""
 
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 0,
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 1,
                  activation: Callable[[torch.Tensor], torch.Tensor] = F.relu, tracking: bool = True) -> None:
         """Instantiating Conv1dLayer class
 
@@ -77,7 +77,7 @@ class Conv1d(nn.Module):
             out_channels (int): the number of channels in the output feature emap
             kernel_size (int): the size of the convolving kernel
             stride (int): stride of the convolution. Default: 1
-            padding (int): zero-padding added to both sides of the input. Default: 0
+            padding (int): zero-padding added to both sides of the input. Default: 1
             activation (function): activation function. Default: F.relu
             tracking (bool): tracking length of sequence. Default: True
         """
