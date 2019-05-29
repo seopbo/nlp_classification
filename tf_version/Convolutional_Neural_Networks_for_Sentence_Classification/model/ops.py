@@ -51,7 +51,3 @@ class MaxOverTimePooling(Model):
         fmap = tf.concat([tf.reduce_max(tri_fmap, 1), tf.reduce_max(tetra_fmap, 1), tf.reduce_max(penta_fmap, 1)],
                          axis=-1)
         return fmap
-
-ConvolutionLayer()
-
-
