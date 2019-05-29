@@ -13,8 +13,8 @@ def collate_fn(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
     Returns:
         data (tuple): tuple of torch.Tensors
     """
-    indices, labels, lengths = zip(*data)
-    indices = pad_sequence(indices, batch_first=True, padding_value=1)
-    labels = torch.stack(labels, 0)
+    tokens2indices, labels2indices, lengths = zip(*data)
+    tokens2indices = pad_sequence(tokens2indices, batch_first=True, padding_value=1)
+    labels2indices = pad_sequence(labels2indices, batch_first=True, padding_value=0)
     lengths = torch.stack(lengths, 0)
-    return indices, labels, lengths
+    return tokens2indices, labels2indices, lengths
