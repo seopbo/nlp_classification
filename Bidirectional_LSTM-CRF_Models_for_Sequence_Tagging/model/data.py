@@ -12,8 +12,8 @@ class Corpus(Dataset):
 
         Args:
             filepath (str): filepath
-            token_vocab: (gluonnlp.Vocab): the instance of gluonnlp.Vocab
-            label_vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            token_vocab: (gluonnlp.Vocab): the instance of gluonnlp.Vocab that has token information
+            label_vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab that has label information
         """
         self._corpus = pd.read_pickle(filepath)
         self._token_vocab = token_vocab
