@@ -4,6 +4,7 @@
                "tst": "data/test.txt",
                "vocab": "data/vocab.pkl",
                "ckpt": "checkpoint/ckpt.tar"},
+  "version": "baseline",
   "model": {"num_classes":  2},
   "padder": {"length" : 70},
   "training": {"epochs": 5,

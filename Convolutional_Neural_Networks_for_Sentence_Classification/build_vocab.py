@@ -11,8 +11,8 @@ tr_filepath = proj_dir / 'data' / 'train.txt'
 tr = pd.read_csv(tr_filepath, sep='\t').loc[:, ['document', 'label']]
 
 # extracting morph in sentences
-tokenizer = MeCab()
-tokenized = tr['document'].apply(tokenizer.morphs).tolist()
+tokenizer = MeCab().morphs
+tokenized = tr['document'].apply(tokenizer).tolist()
 
 # making the vocab
 counter = nlp.data.count_tokens(itertools.chain.from_iterable(tokenized))

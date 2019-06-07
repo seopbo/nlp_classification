@@ -1,28 +1,28 @@
 import pickle
 import json
-import fire
 import torch
 import torch.nn as nn
+import torch.optim as optim
+import fire
 from pathlib import Path
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
-from torch import optim
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from mecab import MeCab
-from model.data import Corpus
+from model.data import Corpus, Tokenizer
 from model.net import SenCNN
 from gluonnlp.data import PadSequence
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
-
-def evaluate(model, dataloader, loss_fn, device):
+def evaluate(model, data_loader, loss_fn, device):
     if model.training:
         model.eval()
 
     avg_loss = 0
 
-    for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
+    for step, mb in tqdm(enumerate(data_loader), desc='steps', total=len(data_loader)):
         x_mb, y_mb = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
@@ -34,9 +34,9 @@ def evaluate(model, dataloader, loss_fn, device):
     return avg_loss
 
 
-def main(cfgpath, global_step):
+def main(json_path, global_step):
     proj_dir = Path.cwd()
-    with open(proj_dir / cfgpath) as io:
+    with open(proj_dir / json_path) as io:
         params = json.loads(io.read())
 
     tr_filepath = proj_dir / params['filepath'].get('tr')
@@ -56,15 +56,17 @@ def main(cfgpath, global_step):
     epochs = params['training'].get('epochs')
     learning_rate = params['training'].get('learning_rate')
 
+    ## creating tokenizer
+    padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
+    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
+
     # creating model
-    model = SenCNN(num_classes=num_classes, vocab=vocab)
+    model = SenCNN(num_classes=num_classes, vocab=tokenizer.vocab)
 
     # creating dataset, dataloader
-    tokenizer = MeCab().morphs
-    padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
-    tr_ds = Corpus(tr_filepath, vocab, tokenizer, padder)
+    tr_ds = Corpus(tr_filepath, tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_ds = Corpus(val_filepath, vocab, tokenizer, padder)
+    val_ds = Corpus(val_filepath, tokenizer.split_and_transform)
     val_dl = DataLoader(val_ds, batch_size=batch_size)
 
     # training
@@ -74,7 +76,7 @@ def main(cfgpath, global_step):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    writer = SummaryWriter('./runs/exp')
+    writer = SummaryWriter('./runs/{}'.format(params['version']))
     for epoch in tqdm(range(epochs), desc='epochs'):
 
         tr_loss = 0
