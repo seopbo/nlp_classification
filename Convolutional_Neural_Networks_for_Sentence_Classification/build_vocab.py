@@ -6,16 +6,16 @@ from pathlib import Path
 from mecab import MeCab
 
 # loading dataset
-proj_dir = Path.cwd()
-tr_filepath = proj_dir / 'data' / 'train.txt'
-tr = pd.read_csv(tr_filepath, sep='\t').loc[:, ['document', 'label']]
+cwd = Path.cwd()
+tr_path = cwd / 'data' / 'train.txt'
+tr = pd.read_csv(tr_path, sep='\t').loc[:, ['document', 'label']]
 
 # extracting morph in sentences
 tokenizer = MeCab().morphs
-tokenized = tr['document'].apply(tokenizer).tolist()
+list_of_tokens = tr['document'].apply(tokenizer).tolist()
 
 # making the vocab
-counter = nlp.data.count_tokens(itertools.chain.from_iterable(tokenized))
+counter = nlp.data.count_tokens(itertools.chain.from_iterable(list_of_tokens))
 vocab = nlp.Vocab(counter=counter, min_freq=10, bos_token=None, eos_token=None)
 
 # connecting SISG embedding with vocab

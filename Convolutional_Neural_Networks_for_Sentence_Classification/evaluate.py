@@ -30,42 +30,37 @@ def get_accuracy(model, data_loader, device):
 
 
 def main(json_path):
-    # parsing json
-    proj_dir = Path.cwd()
-    with open(proj_dir / json_path) as io:
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    # restoring model
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    ckpt = torch.load(savepath)
-    vocab_filepath = params['filepath'].get('vocab')
-
-    ## common params
-    with open(proj_dir / vocab_filepath, mode='rb') as io:
+    # tokenizer
+    vocab_path = params['filepath'].get('vocab')
+    with open(cwd / vocab_path, mode='rb') as io:
         vocab = pickle.load(io)
-
-    padder = PadSequence(length=params['padder'].get('length'), pad_val=vocab.to_indices(vocab.padding_token))
+    length = params['padder'].get('length')
+    padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
     tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
 
-    model = SenCNN(num_classes=params['model'].get('num_classes'), vocab=tokenizer.vocab)
+    # model (restore)
+    save_path = cwd / params['filepath'].get('ckpt')
+    ckpt = torch.load(save_path)
+    num_classes = params['model'].get('num_classes')
+    model = SenCNN(num_classes=num_classes, vocab=tokenizer.vocab)
     model.load_state_dict(ckpt['model_state_dict'])
-    model.eval()
-
-    # creating dataset, dataloader
-
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
-    tst_filepath = proj_dir / params['filepath'].get('tst')
-
-    tr_ds = Corpus(tr_filepath, tokenizer.split_and_transform)
-    tr_dl = DataLoader(tr_ds, batch_size=128, num_workers=4)
-    val_ds = Corpus(val_filepath, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=128, num_workers=4)
-    tst_ds = Corpus(tst_filepath, tokenizer.split_and_transform)
-    tst_dl = DataLoader(tst_ds, batch_size=128, num_workers=4)
-
 
     # evaluation
+    tr_path = cwd / params['filepath'].get('tr')
+    val_path = cwd / params['filepath'].get('val')
+    tst_path = cwd / params['filepath'].get('tst')
+
+    tr_ds = Corpus(tr_path, tokenizer.split_and_transform)
+    tr_dl = DataLoader(tr_ds, batch_size=128, num_workers=4)
+    val_ds = Corpus(val_path, tokenizer.split_and_transform)
+    val_dl = DataLoader(val_ds, batch_size=128, num_workers=4)
+    tst_ds = Corpus(tst_path, tokenizer.split_and_transform)
+    tst_dl = DataLoader(tst_ds, batch_size=128, num_workers=4)
+
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 

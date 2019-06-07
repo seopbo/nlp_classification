@@ -13,8 +13,8 @@ from model.data import Corpus, Tokenizer
 from model.net import SenCNN
 from gluonnlp.data import PadSequence
 from tqdm import tqdm
-# from torch.utils.tensorboard import SummaryWriter
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
+
 
 def evaluate(model, data_loader, loss_fn, device):
     if model.training:
@@ -34,42 +34,36 @@ def evaluate(model, data_loader, loss_fn, device):
     return avg_loss
 
 
-def main(json_path, global_step):
-    proj_dir = Path.cwd()
-    with open(proj_dir / json_path) as io:
+def main(json_path):
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
-    vocab_filepath = params['filepath'].get('vocab')
-
-    ## common params
-    with open(proj_dir / vocab_filepath, mode='rb') as io:
+    # tokenizer
+    vocab_path = params['filepath'].get('vocab')
+    with open(cwd / vocab_path, mode='rb') as io:
         vocab = pickle.load(io)
-
-    ## model params
-    num_classes = params['model'].get('num_classes')
-
-    ## dataset, dataloader params
     length = params['padder'].get('length')
-    batch_size = params['training'].get('batch_size')
-    epochs = params['training'].get('epochs')
-    learning_rate = params['training'].get('learning_rate')
-
-    ## creating tokenizer
     padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
     tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
 
-    # creating model
+    # model
+    num_classes = params['model'].get('num_classes')
     model = SenCNN(num_classes=num_classes, vocab=tokenizer.vocab)
 
-    # creating dataset, dataloader
-    tr_ds = Corpus(tr_filepath, tokenizer.split_and_transform)
+    # training
+    epochs = params['training'].get('epochs')
+    batch_size = params['training'].get('batch_size')
+    learning_rate = params['training'].get('learning_rate')
+    global_step = params['training'].get('global_step')
+
+    tr_path = cwd / params['filepath'].get('tr')
+    val_path = cwd / params['filepath'].get('val')
+    tr_ds = Corpus(tr_path, tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_ds = Corpus(val_filepath, tokenizer.split_and_transform)
+    val_ds = Corpus(val_path, tokenizer.split_and_transform)
     val_dl = DataLoader(val_ds, batch_size=batch_size)
 
-    # training
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=learning_rate)
     scheduler = ReduceLROnPlateau(opt, patience=5)
@@ -109,8 +103,8 @@ def main(json_path, global_step):
     ckpt = {'model_state_dict': model.state_dict(),
             'opt_state_dict': opt.state_dict()}
 
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    torch.save(ckpt, savepath)
+    save_path = cwd / params['filepath'].get('ckpt')
+    torch.save(ckpt, save_path)
 
 
 if __name__ == '__main__':
