@@ -48,7 +48,7 @@ def main(json_path):
     # model
     num_classes = params['model'].get('num_classes')
     embedding_dim = params['model'].get('embedding_dim')
-    model = CharCNN(num_classes=num_classes, embedding_dim=embedding_dim, vocab=tokenizer.vocab)
+    model = CharCNN(num_classes=num_classes, embedding_dim=embedding_dim, num_tokens=len(tokenizer.vocab))
 
     # training
     epochs = params['training'].get('epochs')
