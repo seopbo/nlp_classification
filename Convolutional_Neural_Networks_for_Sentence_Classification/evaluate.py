@@ -50,16 +50,17 @@ def main(json_path):
     model.load_state_dict(ckpt['model_state_dict'])
 
     # evaluation
+    batch_size = params['training'].get('batch_size')
     tr_path = cwd / params['filepath'].get('tr')
     val_path = cwd / params['filepath'].get('val')
     tst_path = cwd / params['filepath'].get('tst')
 
     tr_ds = Corpus(tr_path, tokenizer.split_and_transform)
-    tr_dl = DataLoader(tr_ds, batch_size=128, num_workers=4)
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4)
     val_ds = Corpus(val_path, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=128, num_workers=4)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4)
     tst_ds = Corpus(tst_path, tokenizer.split_and_transform)
-    tst_dl = DataLoader(tst_ds, batch_size=128, num_workers=4)
+    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
