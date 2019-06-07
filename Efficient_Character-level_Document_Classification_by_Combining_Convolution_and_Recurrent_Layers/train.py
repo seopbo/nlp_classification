@@ -1,3 +1,4 @@
+import pickle
 import json
 import fire
 import torch
@@ -5,21 +6,20 @@ import torch.nn as nn
 from pathlib import Path
 from torch import optim
 from torch.utils.data import DataLoader
-from tensorboardX import SummaryWriter
 from torch.nn.utils import clip_grad_norm_
-from model.utils import collate_fn
-from model.utils import JamoTokenizer
-from model.data import Corpus
+from torch.utils.tensorboard import SummaryWriter
 from model.net import ConvRec
+from model.data import Corpus, Tokenizer
+from model.utils import batchify, split_to_jamo
 from tqdm import tqdm
 
 
-def evaluate(model, dataloader, loss_fn, device):
+def evaluate(model, data_loader, loss_fn, device):
     if model.training:
         model.eval()
 
     avg_loss = 0
-    for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
+    for step, mb in tqdm(enumerate(data_loader), desc='steps', total=len(data_loader)):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
@@ -31,49 +31,44 @@ def evaluate(model, dataloader, loss_fn, device):
     return avg_loss
 
 
-def main(cfgpath, global_step):
-    # parsing json
-    proj_dir = Path.cwd()
-    with open(proj_dir / cfgpath) as io:
+def main(json_path):
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
+    # tokenizer
+    vocab_path = params['filepath'].get('vocab')
+    with open(cwd / vocab_path, mode='rb') as io:
+        vocab = pickle.load(io)
+    tokenizer = Tokenizer(vocab=vocab, split_fn=split_to_jamo)
 
-    ## common params
-    tokenizer = JamoTokenizer()
-
-    ## model params
+    # model
     num_classes = params['model'].get('num_classes')
     embedding_dim = params['model'].get('embedding_dim')
     hidden_dim = params['model'].get('hidden_dim')
-
-    ## dataset, dataloader params
-    min_length = params['training'].get('min_length')
-    batch_size = params['training'].get('batch_size')
-    epochs = params['training'].get('epochs')
-    learning_rate = params['training'].get('learning_rate')
-
-    # creating model
-    model = ConvRec(num_classes=num_classes, embedding_dim=embedding_dim,
-                    hidden_dim=hidden_dim, dic=tokenizer.token2idx)
-
-    # creating dataset, dataloader
-    tr_ds = Corpus(tr_filepath, tokenizer, min_length)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True,
-                       collate_fn=collate_fn)
-    val_ds = Corpus(val_filepath, tokenizer, min_length)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4,
-                        collate_fn=collate_fn)
+    model = ConvRec(num_classes=num_classes, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
+                    num_tokens=len(tokenizer.vocab))
 
     # training
+    epochs = params['training'].get('epochs')
+    batch_size = params['training'].get('batch_size')
+    learning_rate = params['training'].get('learning_rate')
+    global_step = params['training'].get('global_step')
+    min_length = params['training'].get('min_length')
+
+    tr_path = cwd / params['filepath'].get('tr')
+    val_path = cwd / params['filepath'].get('val')
+    tr_ds = Corpus(tr_path, tokenizer.split_and_transform, min_length, tokenizer.vocab.to_indices(' '))
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True, collate_fn=batchify)
+    val_ds = Corpus(val_path, tokenizer.split_and_transform, min_length, tokenizer.vocab.to_indices(' '))
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
+
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=learning_rate)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
     model.to(device)
-    writer = SummaryWriter('./runs/exp')
 
+    writer = SummaryWriter('./runs/{}'.format(params['version']))
     for epoch in tqdm(range(epochs), desc='epochs'):
 
         tr_loss = 0
@@ -104,8 +99,8 @@ def main(cfgpath, global_step):
     ckpt = {'model_state_dict': model.state_dict(),
             'opt_state_dict': opt.state_dict()}
 
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    torch.save(ckpt, savepath)
+    save_path = cwd / params['filepath'].get('ckpt')
+    torch.save(ckpt, save_path)
 
 
 if __name__ == '__main__':
