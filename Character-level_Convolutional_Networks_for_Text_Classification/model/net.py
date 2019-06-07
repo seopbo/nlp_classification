@@ -1,21 +1,21 @@
 import torch
 import torch.nn as nn
 from model.ops import Flatten, Permute
-from typing import Dict
+from gluonnlp import Vocab
 
 
 class CharCNN(nn.Module):
     """CharCNN class"""
-    def __init__(self, num_classes: int, embedding_dim: int, dic: Dict[str, int]) -> None:
+    def __init__(self, num_classes: int, embedding_dim: int, vocab: Vocab) -> None:
         """Instantiating CharCNN class
 
         Args:
-            num_classes (int): number of classes
-            embedding_dim (int): embedding dimension of token
-            dic (dict): token2idx
+            num_classes (int): the number of classes
+            embedding_dim (int): the dimension of embedding vector for token
+            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(CharCNN, self).__init__()
-        self._extractor = nn.Sequential(nn.Embedding(len(dic), embedding_dim, padding_idx=1),
+        self._extractor = nn.Sequential(nn.Embedding(len(vocab), embedding_dim, padding_idx=1),
                                         Permute(),
                                         nn.Conv1d(in_channels=embedding_dim, out_channels=256, kernel_size=7),
                                         nn.ReLU(),
