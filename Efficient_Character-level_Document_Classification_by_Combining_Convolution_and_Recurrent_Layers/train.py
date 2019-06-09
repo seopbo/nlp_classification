@@ -47,7 +47,7 @@ def main(json_path):
     embedding_dim = params['model'].get('embedding_dim')
     hidden_dim = params['model'].get('hidden_dim')
     model = ConvRec(num_classes=num_classes, embedding_dim=embedding_dim, hidden_dim=hidden_dim,
-                    num_tokens=len(tokenizer.vocab))
+                    vocab=tokenizer.vocab)
 
     # training
     epochs = params['training'].get('epochs')
