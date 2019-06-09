@@ -44,4 +44,3 @@ def split_to_jamo(string: str) -> List[str]:
         return list_of_tokens
 
     return split(string)
-
