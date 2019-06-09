@@ -28,7 +28,6 @@ def get_accuracy(model, data_loader, device):
 
 
 def main(json_path):
-    # parsing json
     cwd = Path.cwd()
     with open(cwd / json_path) as io:
         params = json.loads(io.read())
@@ -47,7 +46,7 @@ def main(json_path):
     num_classes = params['model'].get('num_classes')
     embedding_dim = params['model'].get('embedding_dim')
 
-    model = CharCNN(num_classes=num_classes, embedding_dim=embedding_dim, num_tokens=len(tokenizer.vocab))
+    model = CharCNN(num_classes=num_classes, embedding_dim=embedding_dim, vocab=tokenizer.vocab)
     model.load_state_dict(ckpt['model_state_dict'])
 
     # evaluation

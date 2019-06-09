@@ -12,3 +12,4 @@ class Permute(nn.Module):
     """Permute class"""
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x.permute(0, 2, 1)
+
