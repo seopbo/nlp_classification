@@ -1,23 +1,24 @@
+import pickle
 import json
 import fire
 import torch
 import pickle
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.utils import collate_fn
-from model.data import Corpus
+from model.utils import batchify
+from model.data import Corpus, Tokenizer
 from model.net import SAN
 from mecab import MeCab
 from tqdm import tqdm
 
 
-def get_accuracy(model, dataloader, device):
+def get_accuracy(model, data_loader, device):
     if model.training:
         model.eval()
 
     correct_count = 0
 
-    for mb in tqdm(dataloader, desc='steps'):
+    for mb in tqdm(data_loader, desc='steps'):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
 
         with torch.no_grad():
@@ -25,49 +26,45 @@ def get_accuracy(model, dataloader, device):
             y_mb_hat = torch.max(score, 1)[1]
             correct_count += (y_mb_hat == y_mb).sum().item()
     else:
-        acc = correct_count / len(dataloader.dataset)
+        acc = correct_count / len(data_loader.dataset)
     return acc
 
 
-def main(cfgpath):
-    # parsing json
-    proj_dir = Path.cwd()
-    with open(proj_dir / cfgpath) as io:
+def main(json_path):
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    # restoring model
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    ckpt = torch.load(savepath)
-
-    ## common params
-    vocab_filepath = params['filepath'].get('vocab')
-    with open(vocab_filepath, mode='rb') as io:
+    # tokenizer
+    vocab_path = params['filepath'].get('vocab')
+    with open(cwd / vocab_path, mode='rb') as io:
         vocab = pickle.load(io)
+    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs)
 
+    # model (restore)
+    save_path = cwd / params['filepath'].get('ckpt')
+    ckpt = torch.load(save_path)
     num_classes = params['model'].get('num_classes')
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
     da = params['model'].get('da')
     r = params['model'].get('r')
     hidden_dim = params['model'].get('hidden_dim')
-
     model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+                da=da, r=r, hidden_dim=hidden_dim, vocab=tokenizer.vocab)
     model.load_state_dict(ckpt['model_state_dict'])
-    model.eval()
 
-    # creating dataset, dataloader
-    tokenizer = MeCab().morphs
-    tst_filepath = proj_dir / params['filepath'].get('tst')
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
+    # evaluation
     batch_size = params['training'].get('batch_size')
+    tr_filepath = cwd / params['filepath'].get('tr')
+    val_filepath = cwd / params['filepath'].get('val')
+    tst_filepath = cwd / params['filepath'].get('tst')
 
-    tr_ds = Corpus(tr_filepath, tokenizer, vocab)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
-    val_ds = Corpus(val_filepath, tokenizer, vocab)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
-    tst_ds = Corpus(tst_filepath, tokenizer, vocab)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    tr_ds = Corpus(tr_filepath, tokenizer.split_and_transform)
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
+    val_ds = Corpus(val_filepath, tokenizer.split_and_transform)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
+    tst_ds = Corpus(tst_filepath, tokenizer.split_and_transform)
+    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)

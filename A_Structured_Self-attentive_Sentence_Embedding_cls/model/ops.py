@@ -6,20 +6,20 @@ from gluonnlp import Vocab
 from typing import Tuple, Union
 
 
-class PreEmbedding(nn.Module):
-    """PreEmbedding class"""
+class Embedding(nn.Module):
+    """Embedding class"""
     def __init__(self, vocab: Vocab, padding_idx: int = 1, freeze: bool = True,
                  permuting: bool = True, tracking: bool = True) -> None:
-        """Instantiating PreEmbedding class
+        """Instantiating Embedding class
 
         Args:
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
             padding_idx (int): denote padding_idx to padding token
-            freeze (bool): freezing weigths. Default: False
+            freeze (bool): freezing weights. Default: False
             permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
             tracking (bool): tracking length of sequence. Default: True
         """
-        super(PreEmbedding, self).__init__()
+        super(Embedding, self).__init__()
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking

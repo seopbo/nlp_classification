@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.ops import PreEmbedding, Linker, BiLSTM, SelfAttention
+from model.ops import Embedding, Linker, BiLSTM, SelfAttention
 from gluonnlp import Vocab
 from typing import Tuple
 
@@ -20,7 +20,8 @@ class SAN(nn.Module):
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SAN, self).__init__()
-        self._embedding = PreEmbedding(vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
+        self._embedding = Embedding(vocab, padding_idx=vocab.to_indices(vocab.padding_token),
+                                    freeze=False, permuting=False, tracking=True)
         self._pipe = Linker(permuting=False)
         self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
