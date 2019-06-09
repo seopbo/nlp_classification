@@ -3,7 +3,7 @@ from torch.nn.utils.rnn import pad_sequence
 from typing import List, Tuple
 
 
-def collate_fn(data: List[Tuple[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor], torch.Tensor]]) \
+def batchify(data: List[Tuple[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor], torch.Tensor]]) \
         -> Tuple[Tuple[torch.Tensor, torch.Tensor], torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
 
     data = list(zip(*data))

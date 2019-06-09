@@ -9,18 +9,18 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from mecab import MeCab
-from model.utils import collate_fn
-from model.data import Corpus
+from model.data import Corpus, Tokenizer
+from model.utils import batchify
 from model.net import SAN
 from tqdm import tqdm
 
 
-def evaluate(model, dataloader, loss_fn, device):
+def evaluate(model, data_loader, loss_fn, device):
     if model.training:
         model.eval()
 
     avg_loss = 0
-    for step, mb in tqdm(enumerate(dataloader), desc='steps', total=len(dataloader)):
+    for step, mb in tqdm(enumerate(data_loader), desc='steps', total=len(data_loader)):
         queries_a_mb, queries_b_mb, y_mb = map(lambda elm: elm.to(device), mb)
         queries_mb = (queries_a_mb, queries_b_mb)
 
@@ -42,54 +42,46 @@ def regularize(attn_mat, r, device):
     return p
 
 
-def main(cfgpath, global_step):
-    # parsing json
-    proj_dir = Path.cwd()
-    with open(proj_dir / cfgpath) as io:
+def main(json_path):
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
-    vocab_filepath = params['filepath'].get('vocab')
-
-    ## common params
-    tokenizer = MeCab().morphs
-    with open(vocab_filepath, mode='rb') as io:
+    # tokenizer
+    vocab_path = params['filepath'].get('vocab')
+    with open(cwd / vocab_path, mode='rb') as io:
         vocab = pickle.load(io)
+    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs)
 
-    ## model params
+    # model
     num_classes = params['model'].get('num_classes')
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
     hidden_dim = params['model'].get('hidden_dim')
     da = params['model'].get('da')
     r = params['model'].get('r')
-
-    ## dataset, dataloader params
-    batch_size = params['training'].get('batch_size')
-    epochs = params['training'].get('epochs')
-    learning_rate = params['training'].get('learning_rate')
-
-    # creating model
     model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim, hidden_dim=hidden_dim,
-                da=da, r=r, vocab=vocab)
-
-    # creating dataset, dataloader
-    tr_ds = Corpus(tr_filepath, tokenizer, vocab)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True,
-                       collate_fn=collate_fn)
-    val_ds = Corpus(val_filepath, tokenizer, vocab)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4,
-                        collate_fn=collate_fn)
+                da=da, r=r, vocab=tokenizer.vocab)
 
     # training
+    epochs = params['training'].get('epochs')
+    batch_size = params['training'].get('batch_size')
+    learning_rate = params['training'].get('learning_rate')
+    global_step = params['training'].get('global_step')
+
+    tr_path = cwd / params['filepath'].get('tr')
+    val_path = cwd / params['filepath'].get('val')
+    tr_ds = Corpus(tr_path, tokenizer.split_and_transform)
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True, collate_fn=batchify)
+    val_ds = Corpus(val_path, tokenizer.split_and_transform)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
+
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=learning_rate)
     scheduler = ReduceLROnPlateau(opt, patience=5)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-
     model.to(device)
-    writer = SummaryWriter('./runs/exp')
 
+    writer = SummaryWriter('./runs/{}'.format(params['version']))
     for epoch in tqdm(range(epochs), desc='epochs'):
 
         tr_loss = 0
@@ -98,7 +90,6 @@ def main(cfgpath, global_step):
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
             queries_a_mb, queries_b_mb, y_mb = map(lambda elm: elm.to(device), mb)
             queries_mb = (queries_a_mb, queries_b_mb)
-
 
             opt.zero_grad()
             score, queries_a_attn_mat, queries_b_attn_mat = model(queries_mb)
@@ -127,8 +118,8 @@ def main(cfgpath, global_step):
     ckpt = {'model_state_dict': model.state_dict(),
             'opt_state_dict': opt.state_dict()}
 
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    torch.save(ckpt, savepath)
+    save_path = cwd / params['filepath'].get('ckpt')
+    torch.save(ckpt, save_path)
 
 
 if __name__ == '__main__':

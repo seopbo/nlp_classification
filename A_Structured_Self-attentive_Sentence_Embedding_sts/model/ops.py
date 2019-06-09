@@ -6,11 +6,12 @@ from gluonnlp import Vocab
 from typing import Tuple, Union
 
 
-class PreEmbedding(nn.Module):
-    """PreEmbedding class"""
+class Embedding(nn.Module):
+    """Embedding class"""
     def __init__(self, vocab: Vocab, padding_idx: int = 1, freeze: bool = True,
                  permuting: bool = True, tracking: bool = True) -> None:
-        """Instantiating PreEmbedding class
+        """Instantiating Embedding class
+
         Args:
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
             padding_idx (int): denote padding_idx to padding token
@@ -18,7 +19,7 @@ class PreEmbedding(nn.Module):
             permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
             tracking (bool): tracking length of sequence. Default: True
         """
-        super(PreEmbedding, self).__init__()
+        super(Embedding, self).__init__()
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking
@@ -39,6 +40,7 @@ class Linker(nn.Module):
     """Linker class"""
     def __init__(self, permuting: bool = True) -> None:
         """Instantiating Linker class
+
         Args:
             permuting (bool): permuting (n, c, l) -> (n, l, c). Default: True
         """
@@ -55,6 +57,7 @@ class BiLSTM(nn.Module):
     """BiLSTM class"""
     def __init__(self, input_size: int, hidden_size: int, using_sequence: bool = True) -> None:
         """Instantiating BiLSTM class
+
         Args:
             input_size (int): the number of expected features in the input x
             hidden_size (int): the number of features in the hidden state h
@@ -79,6 +82,7 @@ class SelfAttention(nn.Module):
     """SelfAttention class"""
     def __init__(self, input_dim: int, da: int, r: int) -> None:
         """Instantiating SelfAttention class
+
         Args:
             input_dim (int): dimension of input, eg) (batch_size, seq_len, input_dim)
             da (int): the number of features in hidden layer from self-attention
@@ -96,18 +100,18 @@ class SelfAttention(nn.Module):
 
 class SentenceEncoder(nn.Module):
     """SentenceEncoder class"""
-    def __init__(self, lstm_hidden_dim: int, da: int, r: int, padding_idx: int, vocab: Vocab) -> None:
+    def __init__(self, lstm_hidden_dim: int, da: int, r: int, vocab: Vocab) -> None:
         """Instantiating SentenceEncoder class
+
         Args:
             lstm_hidden_dim (int): the number of features in the hidden states in bi-directional lstm
             da (int): the number of features in hidden layer from self-attention
             r (int): the number of aspects of self-attention
-            padding_idx (int): denote padding_idx to padding token
             vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
         """
         super(SentenceEncoder, self).__init__()
-        self._embedding = PreEmbedding(vocab, padding_idx=padding_idx, freeze=False,
-                                       permuting=False, tracking=True)
+        self._embedding = Embedding(vocab, padding_idx=vocab.to_indices(vocab.padding_token), freeze=False,
+                                    permuting=False, tracking=True)
         self._pipe = Linker(permuting=False)
         self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
