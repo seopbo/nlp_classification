@@ -4,8 +4,10 @@
                "token_vocab": "data/token_vocab.pkl",
                "label_vocab": "data/label_vocab.pkl",
                "ckpt": "checkpoint/ckpt.tar"},
+  "version": "baseline",
   "model": {"lstm_hidden_dim": 128},
-  "training": {"epochs": 5,
+  "training": {"epochs": 10,
                "batch_size": 128,
-               "learning_rate": 1e-3}
+               "learning_rate": 1e-3,
+               "global_step": 632}
 }

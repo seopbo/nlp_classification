@@ -76,74 +76,305 @@ class BiLSTM(nn.Module):
             feature = torch.cat([*hc[0]], dim=1)
             return feature
 
-# torch.randn?
-# class CRF(nn.Module):
-#     def __init__(self, label_vocab):
-#         super(CRF, self).__init__()
-#         self._num_tags = len(label_vocab)
-#
-#         # matrix of transition scores from j to i
-#         self.trans = nn.Parameter(torch.randn())
-#         self.trans.data[SOS_IDX, :] = -10000. # no transition to SOS
-#         self.trans.data[:, EOS_IDX] = -10000. # no transition from EOS except to PAD
-#         self.trans.data[:, PAD_IDX] = -10000. # no transition from PAD except to PAD
-#         self.trans.data[PAD_IDX, :] = -10000. # no transition to PAD except from EOS
-#         self.trans.data[PAD_IDX, EOS_IDX] = 0.
-#         self.trans.data[PAD_IDX, PAD_IDX] = 0.
-#
-#     def forward(self, h, mask): # forward algorithm
-#         # initialize forward variables in log space
-#         score = Tensor(BATCH_SIZE, self._num_tags).fill_(-10000.) # [B, C]
-#         score[:, SOS_IDX] = 0.
-#         trans = self.trans.unsqueeze(0) # [1, C, C]
-#         for t in range(h.size(1)): # recursion through the sequence
-#             mask_t = mask[:, t].unsqueeze(1)
-#             emit_t = h[:, t].unsqueeze(2) # [B, C, 1]
-#             score_t = score.unsqueeze(1) + emit_t + trans # [B, 1, C] -> [B, C, C]
-#             score_t = log_sum_exp(score_t) # [B, C, C] -> [B, C]
-#             score = score_t * mask_t + score * (1 - mask_t)
-#         score = log_sum_exp(score + self.trans[EOS_IDX])
-#         return score # partition function
-#
-#     def score(self, h, y, mask): # calculate the score of a given sequence
-#         score = Tensor(BATCH_SIZE).fill_(0.)
-#         h = h.unsqueeze(3)
-#         trans = self.trans.unsqueeze(2)
-#         for t in range(h.size(1)): # recursion through the sequence
-#             mask_t = mask[:, t]
-#             emit_t = torch.cat([h[t, y[t + 1]] for h, y in zip(h, y)])
-#             trans_t = torch.cat([trans[y[t + 1], y[t]] for y in y])
-#             score += (emit_t + trans_t) * mask_t
-#         last_tag = y.gather(1, mask.sum(1).long().unsqueeze(1)).squeeze(1)
-#         score += self.trans[EOS_IDX, last_tag]
-#         return score
-#
-#     def decode(self, h, mask): # Viterbi decoding
-#         # initialize backpointers and viterbi variables in log space
-#         bptr = LongTensor()
-#         score = Tensor(BATCH_SIZE, self._num_tags).fill_(-10000.)
-#         score[:, SOS_IDX] = 0.
-#
-#         for t in range(h.size(1)): # recursion through the sequence
-#             mask_t = mask[:, t].unsqueeze(1)
-#             score_t = score.unsqueeze(1) + self.trans # [B, 1, C] -> [B, C, C]
-#             score_t, bptr_t = score_t.max(2) # best previous scores and tags
-#             score_t += h[:, t] # plus emission scores
-#             bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
-#             score = score_t * mask_t + score * (1 - mask_t)
-#         score += self.trans[EOS_IDX]
-#         best_score, best_tag = torch.max(score, 1)
-#
-#         # back-tracking
-#         bptr = bptr.tolist()
-#         best_path = [[i] for i in best_tag.tolist()]
-#         for b in range(BATCH_SIZE):
-#             x = best_tag[b] # best tag
-#             y = int(mask[b].sum().item())
-#             for bptr_t in reversed(bptr[b][:y]):
-#                 x = bptr_t[x]
-#                 best_path[b].append(x)
-#             best_path[b].pop()
-#             best_path[b].reverse()
-#
-#         return best_path
+
+# Below CRF class is from https://github.com/mtreviso/linear-chain-crf/blob/master/crf_vectorized.py
+class CRF(nn.Module):
+    """
+    Linear-chain Conditional Random Field (CRF).
+
+    Args:
+        nb_labels (int): number of labels in your tagset, including special symbols.
+        bos_tag_id (int): integer representing the beginning of sentence symbol in
+            your tagset.
+        eos_tag_id (int): integer representing the end of sentence symbol in your tagset.
+        pad_tag_id (int, optional): integer representing the pad symbol in your tagset.
+            If None, the model will treat the PAD as a normal tag. Otherwise, the model
+            will apply constraints for PAD transitions.
+        batch_first (bool): Whether the first dimension represents the batch dimension.
+    """
+    def __init__(self, nb_labels, bos_tag_id, eos_tag_id, pad_tag_id=None, batch_first=True):
+        super().__init__()
+
+        self.nb_labels = nb_labels
+        self.BOS_TAG_ID = bos_tag_id
+        self.EOS_TAG_ID = eos_tag_id
+        self.PAD_TAG_ID = pad_tag_id
+        self.batch_first = batch_first
+
+        self.transitions = nn.Parameter(torch.empty(self.nb_labels, self.nb_labels))
+        self.init_weights()
+
+    def init_weights(self):
+        # initialize transitions from a random uniform distribution between -0.1 and 0.1
+        nn.init.uniform_(self.transitions, -0.1, 0.1)
+
+        # enforce contraints (rows=from, columns=to) with a big negative number
+        # so exp(-10000) will tend to zero
+
+        # no transitions allowed to the beginning of sentence
+        self.transitions.data[:, self.BOS_TAG_ID] = -10000.0
+        # no transition alloed from the end of sentence
+        self.transitions.data[self.EOS_TAG_ID, :] = -10000.0
+
+        if self.PAD_TAG_ID is not None:
+            # no transitions from padding
+            self.transitions.data[self.PAD_TAG_ID, :] = -10000.0
+            # no transitions to padding
+            self.transitions.data[:, self.PAD_TAG_ID] = -10000.0
+            # except if the end of sentence is reached
+            # or we are already in a pad position
+            self.transitions.data[self.PAD_TAG_ID, self.EOS_TAG_ID] = 0.0
+            self.transitions.data[self.PAD_TAG_ID, self.PAD_TAG_ID] = 0.0
+
+    def forward(self, emissions, tags, mask=None):
+        """Compute the negative log-likelihood. See `log_likelihood` method."""
+        nll = -self.log_likelihood(emissions, tags, mask=mask)
+        return nll
+
+    def log_likelihood(self, emissions, tags, mask=None):
+        """Compute the probability of a sequence of tags given a sequence of
+        emissions scores.
+        Args:
+            emissions (torch.Tensor): Sequence of emissions for each label.
+                Shape of (batch_size, seq_len, nb_labels) if batch_first is True,
+                (seq_len, batch_size, nb_labels) otherwise.
+            tags (torch.LongTensor): Sequence of labels.
+                Shape of (batch_size, seq_len) if batch_first is True,
+                (seq_len, batch_size) otherwise.
+            mask (torch.FloatTensor, optional): Tensor representing valid positions.
+                If None, all positions are considered valid.
+                Shape of (batch_size, seq_len) if batch_first is True,
+                (seq_len, batch_size) otherwise.
+        Returns:
+            torch.Tensor: the log-likelihoods for each sequence in the batch.
+                Shape of (batch_size,)
+        """
+
+        # fix tensors order by setting batch as the first dimension
+        if not self.batch_first:
+            emissions = emissions.transpose(0, 1)
+            tags = tags.transpose(0, 1)
+
+        if mask is None:
+            mask = torch.ones(emissions.shape[:2], dtype=torch.float)
+
+        scores = self._compute_scores(emissions, tags, mask=mask)
+        partition = self._compute_log_partition(emissions, mask=mask)
+        return torch.mean(scores - partition)
+
+    def decode(self, emissions, mask=None):
+        """Find the most probable sequence of labels given the emissions using
+        the Viterbi algorithm.
+        Args:
+            emissions (torch.Tensor): Sequence of emissions for each label.
+                Shape (batch_size, seq_len, nb_labels) if batch_first is True,
+                (seq_len, batch_size, nb_labels) otherwise.
+            mask (torch.FloatTensor, optional): Tensor representing valid positions.
+                If None, all positions are considered valid.
+                Shape (batch_size, seq_len) if batch_first is True,
+                (seq_len, batch_size) otherwise.
+        Returns:
+            torch.Tensor: the viterbi score for the for each batch.
+                Shape of (batch_size,)
+            list of lists: the best viterbi sequence of labels for each batch.
+        """
+        if mask is None:
+            mask = torch.ones(emissions.shape[:2], dtype=torch.float)
+
+        scores, sequences = self._viterbi_decode(emissions, mask)
+        return scores, sequences
+
+    def _compute_scores(self, emissions, tags, mask):
+        """Compute the scores for a given batch of emissions with their tags.
+        Args:
+            emissions (torch.Tensor): (batch_size, seq_len, nb_labels)
+            tags (Torch.LongTensor): (batch_size, seq_len)
+            mask (Torch.FloatTensor): (batch_size, seq_len)
+        Returns:
+            torch.Tensor: Scores for each batch.
+                Shape of (batch_size,)
+        """
+        batch_size, seq_length = tags.shape
+        scores = torch.zeros(batch_size).to(tags.device)
+
+        # save first and last tags to be used later
+        first_tags = tags[:, 0]
+        last_valid_idx = mask.int().sum(1) - 1
+        last_tags = tags.gather(1, last_valid_idx.unsqueeze(1)).squeeze()
+
+        # add the transition from BOS to the first tags for each batch
+        t_scores = self.transitions[self.BOS_TAG_ID, first_tags]
+
+        # add the [unary] emission scores for the first tags for each batch
+        # for all batches, the first word, see the correspondent emissions
+        # for the first tags (which is a list of ids):
+        # emissions[:, 0, [tag_1, tag_2, ..., tag_nblabels]]
+        e_scores = emissions[:, 0].gather(1, first_tags.unsqueeze(1)).squeeze()
+
+        # the scores for a word is just the sum of both scores
+        scores += e_scores + t_scores
+
+        # now lets do this for each remaining word
+        for i in range(1, seq_length):
+
+            # we could: iterate over batches, check if we reached a mask symbol
+            # and stop the iteration, but vecotrizing is faster due to gpu,
+            # so instead we perform an element-wise multiplication
+            is_valid = mask[:, i]
+
+            previous_tags = tags[:, i - 1]
+            current_tags = tags[:, i]
+
+            # calculate emission and transition scores as we did before
+            e_scores = emissions[:, i].gather(1, current_tags.unsqueeze(1)).squeeze()
+            t_scores = self.transitions[previous_tags, current_tags]
+
+            # apply the mask
+            e_scores = e_scores * is_valid
+            t_scores = t_scores * is_valid
+
+            scores += e_scores + t_scores
+
+        # add the transition from the end tag to the EOS tag for each batch
+        scores += self.transitions[last_tags, self.EOS_TAG_ID]
+
+        return scores
+
+    def _compute_log_partition(self, emissions, mask):
+        """Compute the partition function in log-space using the forward-algorithm.
+        Args:
+            emissions (torch.Tensor): (batch_size, seq_len, nb_labels)
+            mask (Torch.FloatTensor): (batch_size, seq_len)
+        Returns:
+            torch.Tensor: the partition scores for each batch.
+                Shape of (batch_size,)
+        """
+        batch_size, seq_length, nb_labels = emissions.shape
+
+        # in the first iteration, BOS will have all the scores
+        alphas = self.transitions[self.BOS_TAG_ID, :].unsqueeze(0) + emissions[:, 0]
+
+        for i in range(1, seq_length):
+            # (bs, nb_labels) -> (bs, 1, nb_labels)
+            e_scores = emissions[:, i].unsqueeze(1)
+
+            # (nb_labels, nb_labels) -> (bs, nb_labels, nb_labels)
+            t_scores = self.transitions.unsqueeze(0)
+
+            # (bs, nb_labels)  -> (bs, nb_labels, 1)
+            a_scores = alphas.unsqueeze(2)
+
+            scores = e_scores + t_scores + a_scores
+            new_alphas = torch.logsumexp(scores, dim=1)
+
+            # set alphas if the mask is valid, otherwise keep the current values
+            is_valid = mask[:, i].unsqueeze(-1)
+            alphas = is_valid * new_alphas + (1 - is_valid) * alphas
+
+        # add the scores for the final transition
+        last_transition = self.transitions[:, self.EOS_TAG_ID]
+        end_scores = alphas + last_transition.unsqueeze(0)
+
+        # return a *log* of sums of exps
+        return torch.logsumexp(end_scores, dim=1)
+
+    def _viterbi_decode(self, emissions, mask):
+        """Compute the viterbi algorithm to find the most probable sequence of labels
+        given a sequence of emissions.
+        Args:
+            emissions (torch.Tensor): (batch_size, seq_len, nb_labels)
+            mask (Torch.FloatTensor): (batch_size, seq_len)
+        Returns:
+            torch.Tensor: the viterbi score for the for each batch.
+                Shape of (batch_size,)
+            list of lists of ints: the best viterbi sequence of labels for each batch
+        """
+        batch_size, seq_length, nb_labels = emissions.shape
+
+        # in the first iteration, BOS will have all the scores and then, the max
+        alphas = self.transitions[self.BOS_TAG_ID, :].unsqueeze(0) + emissions[:, 0]
+
+        backpointers = []
+
+        for i in range(1, seq_length):
+            # (bs, nb_labels) -> (bs, 1, nb_labels)
+            e_scores = emissions[:, i].unsqueeze(1)
+
+            # (nb_labels, nb_labels) -> (bs, nb_labels, nb_labels)
+            t_scores = self.transitions.unsqueeze(0)
+
+            # (bs, nb_labels)  -> (bs, nb_labels, 1)
+            a_scores = alphas.unsqueeze(2)
+
+            # combine current scores with previous alphas
+            scores = e_scores + t_scores + a_scores
+
+            # so far is exactly like the forward algorithm,
+            # but now, instead of calculating the logsumexp,
+            # we will find the highest score and the tag associated with it
+            max_scores, max_score_tags = torch.max(scores, dim=1)
+
+            # set alphas if the mask is valid, otherwise keep the current values
+            is_valid = mask[:, i].unsqueeze(-1)
+            alphas = is_valid * max_scores + (1 - is_valid) * alphas
+
+            # add the max_score_tags for our list of backpointers
+            # max_scores has shape (batch_size, nb_labels) so we transpose it to
+            # be compatible with our previous loopy version of viterbi
+            backpointers.append(max_score_tags.t())
+
+        # add the scores for the final transition
+        last_transition = self.transitions[:, self.EOS_TAG_ID]
+        end_scores = alphas + last_transition.unsqueeze(0)
+
+        # get the final most probable score and the final most probable tag
+        max_final_scores, max_final_tags = torch.max(end_scores, dim=1)
+
+        # find the best sequence of labels for each sample in the batch
+        best_sequences = []
+        emission_lengths = mask.int().sum(dim=1)
+        for i in range(batch_size):
+
+            # recover the original sentence length for the i-th sample in the batch
+            sample_length = emission_lengths[i].item()
+
+            # recover the max tag for the last timestep
+            sample_final_tag = max_final_tags[i].item()
+
+            # limit the backpointers until the last but one
+            # since the last corresponds to the sample_final_tag
+            sample_backpointers = backpointers[: sample_length - 1]
+
+            # follow the backpointers to build the sequence of labels
+            sample_path = self._find_best_path(i, sample_final_tag, sample_backpointers)
+
+            # add this path to the list of best sequences
+            best_sequences.append(sample_path)
+
+        return max_final_scores, best_sequences
+
+    def _find_best_path(self, sample_id, best_tag, backpointers):
+        """Auxiliary function to find the best path sequence for a specific sample.
+            Args:
+                sample_id (int): sample index in the range [0, batch_size)
+                best_tag (int): tag which maximizes the final score
+                backpointers (list of lists of tensors): list of pointers with
+                shape (seq_len_i-1, nb_labels, batch_size) where seq_len_i
+                represents the length of the ith sample in the batch
+            Returns:
+                list of ints: a list of tag indexes representing the bast path
+        """
+
+        # add the final best_tag to our best path
+        best_path = [best_tag]
+
+        # traverse the backpointers in backwards
+        for backpointers_t in reversed(backpointers):
+
+            # recover the best_tag at this timestep
+            best_tag = backpointers_t[best_tag][sample_id].item()
+
+            # append to the beginning of the list so we don't need to reverse it later
+            best_path.insert(0, best_tag)
+
+        return best_path

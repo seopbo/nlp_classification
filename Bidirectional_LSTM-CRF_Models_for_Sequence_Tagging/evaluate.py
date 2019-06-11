@@ -2,81 +2,74 @@ import json
 import fire
 import torch
 import pickle
+import numpy as np
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.utils import batchify
-from model.data import Corpus
-from model.net import SAN
-from mecab import MeCab
+from model.utils import batchify, split_to_self
+from model.data import Corpus, Tokenizer
+from model.net import BilstmCRF
 from tqdm import tqdm
 
 
-def get_accuracy(model, dataloader, device):
+def get_accuracy(model, data_loader, device):
     if model.training:
         model.eval()
 
     correct_count = 0
 
-    for mb in tqdm(dataloader, desc='steps'):
+    for mb in tqdm(data_loader, desc='steps'):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
+        y_mb = y_mb.cpu()
 
         with torch.no_grad():
-            score, _ = model(x_mb)
-            y_mb_hat = torch.max(score, 1)[1]
-            correct_count += (y_mb_hat == y_mb).sum().item()
-    else:
-        acc = correct_count / len(dataloader.dataset)
+            _, yhat = model(x_mb)
+
+            for idx in range(y_mb.size(0)):
+                y = y_mb[idx].masked_select(y_mb[idx].ne(0)).numpy()
+                correct_count += np.mean(np.equal(yhat[idx], y))
+        acc = correct_count / len(data_loader.dataset)
     return acc
 
 
-def main(cfgpath):
-    # parsing json
-    proj_dir = Path.cwd()
-    with open(proj_dir / cfgpath) as io:
+def main(json_path):
+    cwd = Path.cwd()
+    with open(cwd / json_path) as io:
         params = json.loads(io.read())
 
-    # restoring model
-    savepath = proj_dir / params['filepath'].get('ckpt')
-    ckpt = torch.load(savepath)
+    # tokenizer
+    token_vocab_path = params['filepath'].get('token_vocab')
+    label_vocab_path = params['filepath'].get('label_vocab')
+    with open(token_vocab_path, mode='rb') as io:
+        token_vocab = pickle.load(io)
+    with open(label_vocab_path, mode='rb') as io:
+        label_vocab = pickle.load(io)
+    token_tokenizer = Tokenizer(token_vocab, split_to_self)
+    label_tokenizer = Tokenizer(label_vocab, split_to_self)
 
-    ## common params
-    vocab_filepath = params['filepath'].get('vocab')
-    with open(vocab_filepath, mode='rb') as io:
-        vocab = pickle.load(io)
-
-    num_classes = params['model'].get('num_classes')
+    # model (restore)
+    save_path = cwd / params['filepath'].get('ckpt')
+    ckpt = torch.load(save_path)
     lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
-    da = params['model'].get('da')
-    r = params['model'].get('r')
-    hidden_dim = params['model'].get('hidden_dim')
-
-    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                da=da, r=r, hidden_dim=hidden_dim, vocab=vocab)
+    model = BilstmCRF(label_vocab, token_vocab, lstm_hidden_dim)
     model.load_state_dict(ckpt['model_state_dict'])
-    model.eval()
 
-    # creating dataset, dataloader
-    tokenizer = MeCab().morphs
-    tst_filepath = proj_dir / params['filepath'].get('tst')
-    tr_filepath = proj_dir / params['filepath'].get('tr')
-    val_filepath = proj_dir / params['filepath'].get('val')
+    # evaluation
     batch_size = params['training'].get('batch_size')
+    tr_path = cwd / params['filepath'].get('tr')
+    val_path = cwd / params['filepath'].get('val')
 
-    tr_ds = Corpus(tr_filepath, tokenizer, vocab)
+    tr_ds = Corpus(tr_path, token_tokenizer.split_and_transform, label_tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-    val_ds = Corpus(val_filepath, tokenizer, vocab)
+    val_ds = Corpus(val_path, token_tokenizer.split_and_transform, label_tokenizer.split_and_transform)
     val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-    tst_ds = Corpus(tst_filepath, tokenizer, vocab)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
     tr_acc = get_accuracy(model, tr_dl, device)
     val_acc = get_accuracy(model, val_dl, device)
-    tst_acc = get_accuracy(model, tst_dl, device)
 
-    print('tr_acc: {:.2%}, val_acc: {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+    print('tr_acc: {:.2%}, val_acc: {:.2%}'.format(tr_acc, val_acc))
 
 
 if __name__ == '__main__':

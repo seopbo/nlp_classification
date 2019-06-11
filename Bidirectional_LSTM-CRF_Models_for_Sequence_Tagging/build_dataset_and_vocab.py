@@ -38,10 +38,6 @@ ptr_embedding = nlp.embedding.create('fasttext', source='wiki.ko')
 token_vocab.set_embedding(ptr_embedding)
 
 
-tr = [list(map(lambda elm: [token_vocab.bos_token] + elm + [token_vocab.eos_token], data)) for data in tr]
-val = [list(map(lambda elm: [token_vocab.bos_token] + elm + [token_vocab.eos_token], data)) for data in val]
-
-
 with open('./data/token_vocab.pkl', mode='wb') as io:
     pickle.dump(token_vocab, io)
 with open('./data/tr.pkl', mode='wb') as io:
