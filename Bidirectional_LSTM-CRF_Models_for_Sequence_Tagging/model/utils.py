@@ -3,7 +3,7 @@ from torch.nn.utils.rnn import pad_sequence
 from typing import List, Tuple
 
 
-def collate_fn(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
+def batchify(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
         Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """custom collate_fn for DataLoader
 
@@ -18,3 +18,7 @@ def collate_fn(data: List[Tuple[torch.tensor, torch.tensor, torch.tensor]]) ->\
     labels2indices = pad_sequence(labels2indices, batch_first=True, padding_value=0)
     lengths = torch.stack(lengths, 0)
     return tokens2indices, labels2indices, lengths
+
+
+def split_to_self(list_of_tokens: List[str]) -> List[str]:
+    return list_of_tokens

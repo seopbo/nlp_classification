@@ -48,5 +48,3 @@ with open('./data/tr.pkl', mode='wb') as io:
     pickle.dump(tr, io)
 with open('./data/val.pkl', mode='wb') as io:
     pickle.dump(val, io)
-
-

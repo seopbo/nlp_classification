@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from model.net import BilstmCRF
 from model.data import Corpus
-from model.utils import collate_fn
+from model.utils import batchify
 from model.metric import sequence_loss
 from tqdm import tqdm
 
@@ -66,9 +66,9 @@ def main(cfgpath, global_step):
     # creating dataset, dataloader
     tr_ds = Corpus(tr_filepath, token_vocab, label_vocab)
     tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True,
-                       collate_fn=collate_fn)
+                       collate_fn=batchify)
     val_ds = Corpus(val_filepath, token_vocab, label_vocab)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
 
 
 

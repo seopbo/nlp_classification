@@ -27,3 +27,15 @@ class BilstmCRF(nn.Module):
         hiddens = self._bilstm(fmap)
         scores = self._fc(hiddens)
         return scores
+
+import pickle
+from model.data import Corpus, Tokenizer
+from model.utils import split_to_self
+with open('./data/token_vocab.pkl', mode='rb') as io:
+    token_vocab = pickle.load(io)
+with open('./data/label_vocab.pkl', mode='rb') as io:
+    label_vocab = pickle.load(io)
+
+tkn_tokenizer = Tokenizer(token_vocab, split_to_self)
+label_tokenizer = Tokenizer(label_vocab, split_to_self)
+tr_ds = Corpus('./data/tr.pkl', tkn_tokenizer.split_and_transform, label_tokenizer.split_and_transform)

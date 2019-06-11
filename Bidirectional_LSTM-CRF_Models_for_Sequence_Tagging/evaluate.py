@@ -4,7 +4,7 @@ import torch
 import pickle
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.utils import collate_fn
+from model.utils import batchify
 from model.data import Corpus
 from model.net import SAN
 from mecab import MeCab
@@ -63,11 +63,11 @@ def main(cfgpath):
     batch_size = params['training'].get('batch_size')
 
     tr_ds = Corpus(tr_filepath, tokenizer, vocab)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
     val_ds = Corpus(val_filepath, tokenizer, vocab)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
     tst_ds = Corpus(tst_filepath, tokenizer, vocab)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
