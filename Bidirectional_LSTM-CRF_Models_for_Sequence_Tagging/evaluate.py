@@ -27,7 +27,7 @@ def get_accuracy(model, data_loader, device):
             for idx in range(y_mb.size(0)):
                 y = y_mb[idx].masked_select(y_mb[idx].ne(0)).numpy()
                 correct_count += np.mean(np.equal(yhat[idx], y))
-        acc = correct_count / len(data_loader.dataset)
+    acc = correct_count / len(data_loader.dataset)
     return acc
 
 
