@@ -2,20 +2,22 @@ import json
 import fire
 import torch
 import pickle
-import numpy as np
+import itertools
 from pathlib import Path
 from torch.utils.data import DataLoader
 from model.utils import batchify, split_to_self
 from model.data import Corpus, Tokenizer
 from model.net import BilstmCRF
 from tqdm import tqdm
+from sklearn.metrics import f1_score
 
 
-def get_accuracy(model, data_loader, device):
+def get_f1_score(model, data_loader, device):
     if model.training:
         model.eval()
 
-    correct_count = 0
+    true_entities = []
+    pred_entities = []
 
     for mb in tqdm(data_loader, desc='steps'):
         x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
@@ -23,12 +25,11 @@ def get_accuracy(model, data_loader, device):
 
         with torch.no_grad():
             _, yhat = model(x_mb)
-
-            for idx in range(y_mb.size(0)):
-                y = y_mb[idx].masked_select(y_mb[idx].ne(0)).numpy()
-                correct_count += np.mean(np.equal(yhat[idx], y))
-    acc = correct_count / len(data_loader.dataset)
-    return acc
+            pred_entities.extend(list(itertools.chain.from_iterable(yhat)))
+            true_entities.extend(y_mb.masked_select(y_mb.ne(0)).numpy().tolist())
+    else:
+        score = f1_score(true_entities, pred_entities, average='weighted')
+    return score
 
 
 def main(json_path):
@@ -66,8 +67,8 @@ def main(json_path):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    tr_acc = get_accuracy(model, tr_dl, device)
-    val_acc = get_accuracy(model, val_dl, device)
+    tr_acc = get_f1_score(model, tr_dl, device)
+    val_acc = get_f1_score(model, val_dl, device)
 
     print('tr_acc: {:.2%}, val_acc: {:.2%}'.format(tr_acc, val_acc))
 
