@@ -67,10 +67,10 @@ def main(json_path):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    tr_acc = get_f1_score(model, tr_dl, device)
-    val_acc = get_f1_score(model, val_dl, device)
+    tr_f1_score = get_f1_score(model, tr_dl, device)
+    val_f1_score = get_f1_score(model, val_dl, device)
 
-    print('tr_acc: {:.2%}, val_acc: {:.2%}'.format(tr_acc, val_acc))
+    print('tr_f1_score: {:.2%}, val_f1_score: {:.2%}'.format(tr_f1_score, val_f1_score))
 
 
 if __name__ == '__main__':
