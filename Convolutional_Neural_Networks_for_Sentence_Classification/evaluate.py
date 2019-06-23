@@ -1,76 +1,55 @@
+import argparse
 import torch
-import json
-import fire
+import torch.nn as nn
 import pickle
 from pathlib import Path
 from model.data import Corpus, Tokenizer
 from model.net import SenCNN
+from model.metric import evaluate, get_accuracy
+from utils import Config, CheckpointManager
 from torch.utils.data import DataLoader
 from mecab import MeCab
 from gluonnlp.data import PadSequence
-from tqdm import tqdm
 
 
-def get_accuracy(model, data_loader, device):
-    if model.training:
-        model.eval()
-
-    correct_count = 0
-
-    for mb in tqdm(data_loader, desc='steps'):
-        x_mb, y_mb = map(lambda elm: elm.to(device), mb)
-
-        with torch.no_grad():
-            y_mb_hat = torch.max(model(x_mb), 1)[1]
-            correct_count += (y_mb_hat == y_mb).sum().item()
-
-    else:
-        acc = correct_count / len(data_loader.dataset)
-    return acc
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
+parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
+parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
+                     containing weights to load")
 
 
-def main(json_path):
-    cwd = Path.cwd()
-    with open(cwd / json_path) as io:
-        params = json.loads(io.read())
+if __name__ == '__main__':
+    args = parser.parse_args()
+    data_dir = Path(args.data_dir)
+    model_dir = Path(args.model_dir)
+    data_config = Config(json_path=data_dir / 'config.json')
+    model_config = Config(json_path=model_dir / 'config.json')
 
     # tokenizer
-    vocab_path = params['filepath'].get('vocab')
-    with open(cwd / vocab_path, mode='rb') as io:
+    with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
-    length = params['padder'].get('length')
-    padder = PadSequence(length=length, pad_val=vocab.to_indices(vocab.padding_token))
+    padder = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
     tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
 
     # model (restore)
-    save_path = cwd / params['filepath'].get('ckpt')
-    ckpt = torch.load(save_path)
-    num_classes = params['model'].get('num_classes')
-    model = SenCNN(num_classes=num_classes, vocab=tokenizer.vocab)
+    manager = CheckpointManager(model_dir)
+    ckpt = manager.load_checkpoint(args.restore_file + '.tar')
+    model = SenCNN(num_classes=model_config.num_classes, vocab=tokenizer.vocab)
     model.load_state_dict(ckpt['model_state_dict'])
 
     # evaluation
-    batch_size = params['training'].get('batch_size')
-    tr_path = cwd / params['filepath'].get('tr')
-    val_path = cwd / params['filepath'].get('val')
-    tst_path = cwd / params['filepath'].get('tst')
-
-    tr_ds = Corpus(tr_path, tokenizer.split_and_transform)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4)
-    val_ds = Corpus(val_path, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4)
-    tst_ds = Corpus(tst_path, tokenizer.split_and_transform)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4)
+    tst_ds = Corpus(data_config.tst, tokenizer.split_and_transform)
+    tst_dl = DataLoader(tst_ds, batch_size=model_config.batch_size, num_workers=4)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    tr_acc = get_accuracy(model, tr_dl, device)
-    val_acc = get_accuracy(model, val_dl, device)
-    tst_acc = get_accuracy(model, tst_dl, device)
+    tst_summ = evaluate(model, tst_dl, {'loss': nn.CrossEntropyLoss(), 'acc': get_accuracy}, device)
 
-    print('tr_acc: {:.2%}, val_acc : {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+    manager.load_summary('summary.json')
+    manager.update_summary({'tst': tst_summ})
+    manager.save_summary('summary.json')
 
+    print('tst_loss: {:.3f}, tst_acc: {:.2%}'.format(tst_summ['loss'], tst_summ['acc']))
 
-if __name__ == '__main__':
-    fire.Fire(main)
