@@ -4,25 +4,16 @@ from pathlib import Path
 
 
 class Config:
-    """
-    Config class
-    """
-
-    def __init__(self, json_path: str) -> None:
-        """Instantiating Config class
-
-        Args:
-            json_path (str): the path of json which have information of experiment
-        """
+    def __init__(self, json_path):
         with open(json_path, mode='r') as io:
             params = json.loads(io.read())
         self.__dict__.update(params)
 
-    def save(self, json_path: str) -> None:
+    def save(self, json_path):
         with open(json_path, mode='w') as io:
             json.dump(self.__dict__, io, indent=4)
 
-    def update(self, json_path: str) -> None:
+    def update(self, json_path):
         with open(json_path, mode='r') as io:
             params = json.loads(io.read())
         self.__dict__.update(params)

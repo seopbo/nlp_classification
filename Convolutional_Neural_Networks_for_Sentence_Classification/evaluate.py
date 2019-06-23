@@ -52,4 +52,3 @@ if __name__ == '__main__':
     manager.save_summary('summary.json')
 
     print('tst_loss: {:.3f}, tst_acc: {:.2%}'.format(tst_summ['loss'], tst_summ['acc']))
-
