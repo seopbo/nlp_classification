@@ -1,0 +1,6 @@
+{
+  "tr": "data/train.txt",
+  "val": "data/val.txt",
+  "tst": "data/test.txt",
+  "vocab": "data/vocab.pkl"
+}
