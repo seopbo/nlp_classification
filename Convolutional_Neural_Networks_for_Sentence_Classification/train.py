@@ -8,18 +8,17 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from mecab import MeCab
-from model.data import Corpus, Tokenizer
+from model.data import Corpus
 from model.net import SenCNN
-from model.metric import evaluate, get_accuracy
+from model.utils import Tokenizer, PadSequence
+from model.metric import evaluate, acc
 from utils import Config, CheckpointManager
-from gluonnlp.data import PadSequence
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -31,8 +30,8 @@ if __name__ == '__main__':
     # tokenizer
     with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
-    padder = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
-    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
+    pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
+    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=pad_sequence)
 
     # model
     model = SenCNN(num_classes=model_config.num_classes, vocab=tokenizer.vocab)
@@ -70,7 +69,7 @@ if __name__ == '__main__':
             opt.step()
 
             with torch.no_grad():
-                mb_acc = get_accuracy(y_hat_mb, y_mb)
+                mb_acc = acc(y_hat_mb, y_mb)
 
             tr_loss += mb_loss.item()
             tr_acc += mb_acc.item()
@@ -85,7 +84,7 @@ if __name__ == '__main__':
             tr_acc /= (step + 1)
 
             tr_summ = {'loss': tr_loss, 'acc': tr_acc}
-            val_summ = evaluate(model, val_dl, {'loss': loss_fn, 'acc': get_accuracy}, device)
+            val_summ = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
             scheduler.step(val_summ['loss'])
             tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
                        '{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}'.format(epoch + 1, tr_summ['loss'], val_summ['loss'],

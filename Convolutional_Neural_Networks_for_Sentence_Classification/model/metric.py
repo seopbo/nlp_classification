@@ -15,15 +15,15 @@ def evaluate(model, data_loader, metrics, device):
             y_hat_mb = model(x_mb)
 
             for metric in metrics:
-                summary[metric] += metrics[metric](y_hat_mb, y_mb).item()
+                summary[metric] += metrics[metric](y_hat_mb, y_mb).item() * y_mb.size()[0]
     else:
         for metric in metrics:
-            summary[metric] /= (step + 1)
+            summary[metric] /= len(data_loader.dataset)
 
     return summary
 
 
-def get_accuracy(yhat, y):
+def acc(yhat, y):
     with torch.no_grad():
         yhat = yhat.max(dim=1)[1]
         acc = (yhat == y).float().mean()

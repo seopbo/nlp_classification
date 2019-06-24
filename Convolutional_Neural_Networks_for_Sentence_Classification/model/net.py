@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from model.ops import MultiChannelEmbedding, ConvolutionLayer, MaxOverTimePooling
-from gluonnlp import Vocab
+from model.utils import Vocab
 
 
 class SenCNN(nn.Module):
@@ -11,7 +11,7 @@ class SenCNN(nn.Module):
 
         Args:
             num_classes (int): the number of classes
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
         """
         super(SenCNN, self).__init__()
         self._embedding = MultiChannelEmbedding(vocab)

@@ -25,7 +25,7 @@ class Config:
 
 class CheckpointManager:
     def __init__(self, model_dir):
-        if isinstance(model_dir, Path):
+        if not isinstance(model_dir, Path):
             model_dir = Path(model_dir)
         self._model_dir = model_dir
         self._summary = {}

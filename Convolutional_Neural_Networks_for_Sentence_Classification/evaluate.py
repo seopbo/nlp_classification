@@ -3,13 +3,13 @@ import torch
 import torch.nn as nn
 import pickle
 from pathlib import Path
-from model.data import Corpus, Tokenizer
+from model.data import Corpus
 from model.net import SenCNN
-from model.metric import evaluate, get_accuracy
+from model.utils import Tokenizer, PadSequence
+from model.metric import evaluate, acc
 from utils import Config, CheckpointManager
 from torch.utils.data import DataLoader
 from mecab import MeCab
-from gluonnlp.data import PadSequence
 
 
 parser = argparse.ArgumentParser()
@@ -29,8 +29,8 @@ if __name__ == '__main__':
     # tokenizer
     with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
-    padder = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
-    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=padder)
+    pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
+    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=pad_sequence)
 
     # model (restore)
     manager = CheckpointManager(model_dir)
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    tst_summ = evaluate(model, tst_dl, {'loss': nn.CrossEntropyLoss(), 'acc': get_accuracy}, device)
+    tst_summ = evaluate(model, tst_dl, {'loss': nn.CrossEntropyLoss(), 'acc': acc}, device)
 
     manager.load_summary('summary.json')
     manager.update_summary({'tst': tst_summ})
