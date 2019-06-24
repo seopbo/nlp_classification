@@ -3,7 +3,7 @@ from typing import List, Callable, Union
 
 class Vocab:
     def __init__(self, list_of_tokens=None, padding_token='<pad>', unknown_token='<unk>',
-                 bos_token='<bos>', eos_token='<eos>', reserved_tokens=None, unknown_token_idx=1):
+                 bos_token='<bos>', eos_token='<eos>', reserved_tokens=None, unknown_token_idx=0):
         self._unknown_token = unknown_token
         self._padding_token = padding_token
         self._bos_token = bos_token
