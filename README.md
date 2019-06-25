@@ -12,6 +12,7 @@ The papers were implemented in using korean corpus
 | ConvRec          | 86.80% | 82.66% | 82.29% |
 | VDCNN            | 86.31% | 83.87% | 83.90% |
 | SAN | 93.90% | 86.52% | 86.35% |
+| KoBERT | 91.07% | 90.00% | 89.86% |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -23,6 +24,8 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1606.01781
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_cls) (as SAN)
   + https://arxiv.org/abs/1703.03130
+* [x] [BERT sequence classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_sequence_classification) (as KoBERT)
+  + https://arxiv.org/abs/1810.04805
 
 ### Semantic textual similarity
 + Creating dataset from https://github.com/songys/Question_pair 
