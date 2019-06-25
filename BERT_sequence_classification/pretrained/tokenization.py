@@ -29,7 +29,8 @@ import unicodedata
 import os
 import logging
 
-from .file_utils import cached_path
+from pytorch_pretrained_bert.file_utils import cached_path
+# from .file_utils import cached_path
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from typing import List, Callable, Union
 
 class Vocab:
     def __init__(self, list_of_tokens=None, padding_token='<pad>', unknown_token='<unk>',
-                 bos_token='<bos>', eos_token='<eos>', reserved_tokens=None, unknown_token_idx=1):
+                 bos_token='<bos>', eos_token='<eos>', reserved_tokens=None, unknown_token_idx=0):
         self._unknown_token = unknown_token
         self._padding_token = padding_token
         self._bos_token = bos_token
@@ -107,6 +107,14 @@ class Tokenizer:
 
     def split_and_transform(self, string: str) -> List[int]:
         return self.transform(self.split(string))
+
+    def preprocess(self, string):
+        list_of_tokens = self.split(string)
+        if len(list_of_tokens) >= self._pad._length:
+            list_of_tokens = list_of_tokens[:(self._pad._length - 2)]
+        list_of_tokens = ['[CLS]'] + list_of_tokens + ['[SEP]']
+        list_of_indices = self.transform(list_of_tokens)
+        return list_of_indices
 
     @property
     def vocab(self):
