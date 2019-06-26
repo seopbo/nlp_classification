@@ -3,7 +3,7 @@ The papers were implemented in using korean corpus
 
 ### Classification
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
-+ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128)
++ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128, except KoBERT (epoch: 2, mini_batch: 32))
 
 |                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) |
 | :--------------- | :-------: | :------------: | :------: |
