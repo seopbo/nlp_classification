@@ -12,7 +12,7 @@ The papers were implemented in using korean corpus
 | ConvRec          | 86.80% | 82.66% | 82.29% |
 | VDCNN            | 86.31% | 83.87% | 83.90% |
 | SAN | 93.90% | 86.52% | 86.35% |
-| KoBERT | 91.07% | 90.00% | 89.86% |
+| KoBERT | 94.47% | 89.85% | 89.60% |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -24,7 +24,7 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1606.01781
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_cls) (as SAN)
   + https://arxiv.org/abs/1703.03130
-* [x] [BERT sequence classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_sequence_classification) (as KoBERT)
+* [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as KoBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Semantic textual similarity
@@ -38,6 +38,8 @@ The papers were implemented in using korean corpus
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
   + https://arxiv.org/abs/1703.03130
+* [x] BERT_pair_sentence_classification
+  + https://arxiv.org/abs/1810.04805
 
 ### Language model
 * [ ] Character-Aware Neural Language Models
@@ -53,6 +55,8 @@ The papers were implemented in using korean corpus
 	+ https://arxiv.org/abs/1603.01354
 * [ ] Neural Architectures for Named Entity Recognition
 	+ https://arxiv.org/abs/1603.01360
+* [ ] BERT_single_sentence_tagging
+	+ https://arxiv.org/abs/1810.04805
 
 
 ### Neural machine translation
@@ -65,14 +69,5 @@ The papers were implemented in using korean corpus
 ### Machine reading comprension
 * [ ] Bi-directional attention flow for machine comprehension
 	+ https://arxiv.org/abs/1611.01603
-
-### Transfer learning
-* [ ] Deep contextualized word representations
-	+ https://arxiv.org/abs/1802.05365
-* [ ] Improving Language Understanding by Generative Pre-Training
-	+ https://s3-us-west-2.amazonaws.com/openai-assets/research-covers/language-unsupervised/language_understanding_paper.pdf
-* [ ] BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
+* [ ] BERT_question_answering
 	+ https://arxiv.org/abs/1810.04805
-* [ ] Language Models are Unsupervised Multitask Learners
-	+ https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf
-
