@@ -8,17 +8,19 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from mecab import MeCab
-from model.data import Corpus
 from model.net import SenCNN
+from model.data import Corpus
 from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
-from utils import Config, CheckpointManager
+from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -49,7 +51,8 @@ if __name__ == '__main__':
     model.to(device)
 
     writer = SummaryWriter('{}/runs'.format(model_dir))
-    manager = CheckpointManager(model_dir)
+    checkpoint_manager = CheckpointManager(model_dir)
+    summary_manager = SummaryManager(model_dir)
     best_val_loss = 1e+10
 
     for epoch in tqdm(range(model_config.epochs), desc='epochs'):
@@ -83,24 +86,25 @@ if __name__ == '__main__':
             tr_loss /= (step + 1)
             tr_acc /= (step + 1)
 
-            tr_summ = {'loss': tr_loss, 'acc': tr_acc}
-            val_summ = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
-            scheduler.step(val_summ['loss'])
+            tr_summary = {'loss': tr_loss, 'acc': tr_acc}
+            val_summary = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
+            scheduler.step(val_summary['loss'])
             tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
-                       '{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}'.format(epoch + 1, tr_summ['loss'], val_summ['loss'],
-                                                                        tr_summ['acc'], val_summ['acc']))
+                       '{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}'.format(epoch + 1, tr_summary['loss'],
+                                                                        val_summary['loss'], tr_summary['acc'],
+                                                                        val_summary['acc']))
 
-            val_loss = val_summ['loss']
+            val_loss = val_summary['loss']
             is_best = val_loss < best_val_loss
 
             if is_best:
                 state = {'epoch': epoch + 1,
                          'model_state_dict': model.state_dict(),
                          'opt_state_dict': opt.state_dict()}
-                summary = {'tr': tr_summ, 'val': val_summ}
+                summary = {'tr': tr_summary, 'val': val_summary}
 
-                manager.update_summary(summary)
-                manager.save_summary('summary.json')
-                manager.save_checkpoint(state, 'best.tar')
+                summary_manager.update(summary)
+                summary_manager.save('summary.json')
+                checkpoint_manager.save_checkpoint(state, 'best.tar')
 
                 best_val_loss = val_loss
