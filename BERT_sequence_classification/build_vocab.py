@@ -11,5 +11,5 @@ vocab = Vocab(idx_to_token, padding_token='[PAD]', unknown_token='[UNK]', bos_to
               reserved_tokens=['[CLS]', '[SEP]', '[MASK]'], unknown_token_idx=1)
 
 # save vocab
-with open('./data/vocab.pkl', mode='wb') as io:
+with open('./pretrained/vocab.pkl', mode='wb') as io:
     pickle.dump(vocab, io)
