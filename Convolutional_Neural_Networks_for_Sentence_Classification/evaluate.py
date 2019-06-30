@@ -55,4 +55,3 @@ if __name__ == '__main__':
     summary_manager.save('summary.json')
 
     print('loss: {:.3f}, acc: {:.2%}'.format(summary['loss'], summary['acc']))
-

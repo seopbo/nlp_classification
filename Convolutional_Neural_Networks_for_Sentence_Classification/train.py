@@ -14,7 +14,8 @@ from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
+# from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
@@ -38,9 +39,9 @@ if __name__ == '__main__':
     model = SenCNN(num_classes=model_config.num_classes, vocab=tokenizer.vocab)
 
     # training
-    tr_ds = Corpus(data_config.tr, tokenizer.split_and_transform)
+    tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=model_config.batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_ds = Corpus(data_config.val, tokenizer.split_and_transform)
+    val_ds = Corpus(data_config.validation, tokenizer.split_and_transform)
     val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
 
     loss_fn = nn.CrossEntropyLoss()
@@ -76,7 +77,7 @@ if __name__ == '__main__':
             tr_loss += mb_loss.item()
             tr_acc += mb_acc.item()
 
-            if (epoch * len(tr_dl) + step) % model_config.global_step == 0:
+            if (epoch * len(tr_dl) + step) % model_config.summary_step == 0:
                 val_loss = evaluate(model, val_dl, {'loss': loss_fn}, device)['loss']
                 writer.add_scalars('loss', {'train': tr_loss / (step + 1),
                                             'val': val_loss}, epoch * len(tr_dl) + step)
