@@ -2,21 +2,20 @@ import pandas as pd
 import itertools
 import pickle
 import gluonnlp as nlp
-from pathlib import Path
 from mecab import MeCab
 from model.utils import Vocab
+from utils import Config
 from collections import Counter
 
 # loading dataset
-cwd = Path.cwd()
-tr_path = cwd / 'data' / 'train.txt'
-tr = pd.read_csv(tr_path, sep='\t').loc[:, ['document', 'label']]
+data_config = Config('data/config.json')
+tr = pd.read_csv(data_config.train, sep='\t').loc[:, ['document', 'label']]
 
 # extracting morph in sentences
 split_fn = MeCab().morphs
 list_of_tokens = tr['document'].apply(split_fn).tolist()
 
-# making the vocab
+# generating the vocab
 min_freq = 10
 token_counter = Counter(itertools.chain.from_iterable(list_of_tokens))
 list_of_tokens = list(map(lambda elm: elm[0], filter(lambda elm: elm[1] >= 10, token_counter.items())))
@@ -35,5 +34,7 @@ vocab = Vocab(list_of_tokens, padding_token='<pad>', unknown_token='<unk>', bos_
 vocab.embedding = array
 
 # saving vocab
-with open('./data/vocab.pkl', mode='wb') as io:
+with open('data/vocab.pkl', mode='wb') as io:
     pickle.dump(vocab, io)
+data_config.vocab = 'data/vocab.pkl'
+data_config.save('data/config.json')

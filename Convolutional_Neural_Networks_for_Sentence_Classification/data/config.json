@@ -1,6 +1,6 @@
 {
-  "train": "data/train.txt",
-  "validation": "data/validation.txt",
-  "test": "data/test.txt",
-  "vocab": "data/vocab.pkl"
+    "train": "data/train.txt",
+    "validation": "data/validation.txt",
+    "test": "data/test.txt",
+    "vocab": "data/vocab.pkl"
 }
