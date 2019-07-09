@@ -1,7 +1,7 @@
-import pandas as pd
 import itertools
 import pickle
 import gluonnlp as nlp
+import pandas as pd
 from mecab import MeCab
 from model.utils import Vocab
 from utils import Config
@@ -18,7 +18,7 @@ list_of_tokens = tr['document'].apply(split_fn).tolist()
 # generating the vocab
 min_freq = 10
 token_counter = Counter(itertools.chain.from_iterable(list_of_tokens))
-list_of_tokens = list(map(lambda elm: elm[0], filter(lambda elm: elm[1] >= 10, token_counter.items())))
+list_of_tokens = [token_count[0] for token_count in token_counter.items() if token_count[1] >= min_freq]
 list_of_tokens = sorted(list_of_tokens)
 list_of_tokens.insert(0, '<pad>')
 list_of_tokens.insert(0, '<unk>')

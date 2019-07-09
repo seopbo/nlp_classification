@@ -20,8 +20,6 @@ class SenCNN(nn.Module):
         self._dropout = nn.Dropout()
         self._fc = nn.Linear(300, num_classes)
 
-        self.apply(self._init_weights)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         fmap = self._embedding(x)
         fmap = self._convolution(fmap)
@@ -30,9 +28,3 @@ class SenCNN(nn.Module):
         score = self._fc(feature)
 
         return score
-
-    def _init_weights(self, layer) -> None:
-        if isinstance(layer, nn.Conv1d):
-            nn.init.kaiming_uniform_(layer.weight)
-        elif isinstance(layer, nn.Linear):
-            nn.init.xavier_normal_(layer.weight)
