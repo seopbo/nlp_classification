@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from model.ops import Flatten, Permute
-from gluonnlp import Vocab
+from model.utils import Vocab
 
 
 class CharCNN(nn.Module):
@@ -12,7 +12,7 @@ class CharCNN(nn.Module):
         Args:
             num_classes (int): the number of classes
             embedding_dim (int): the dimension of embedding vector for token
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
         """
         super(CharCNN, self).__init__()
         self._extractor = nn.Sequential(nn.Embedding(len(vocab), embedding_dim, vocab.to_indices(vocab.padding_token)),
@@ -42,15 +42,7 @@ class CharCNN(nn.Module):
                                          nn.Dropout(),
                                          nn.Linear(in_features=512, out_features=num_classes))
 
-        self.apply(self._init_weights)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         feature = self._extractor(x)
         score = self._classifier(feature)
         return score
-
-    def _init_weights(self, layer) -> None:
-        if isinstance(layer, nn.Conv1d):
-            nn.init.kaiming_uniform_(layer.weight)
-        elif isinstance(layer, nn.Linear):
-            nn.init.xavier_uniform_(layer.weight)
