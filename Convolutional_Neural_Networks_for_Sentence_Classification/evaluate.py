@@ -3,13 +3,13 @@ import torch
 import torch.nn as nn
 import pickle
 from pathlib import Path
+from torch.utils.data import DataLoader
 from mecab import MeCab
 from model.data import Corpus
 from model.net import SenCNN
 from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
-from torch.utils.data import DataLoader
 
 
 parser = argparse.ArgumentParser()

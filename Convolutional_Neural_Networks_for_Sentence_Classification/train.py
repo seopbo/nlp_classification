@@ -4,18 +4,17 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
+from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.tensorboard import SummaryWriter
 from mecab import MeCab
 from model.net import SenCNN
 from model.data import Corpus
 from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
-from tqdm import tqdm
-from torch.utils.tensorboard import SummaryWriter
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
