@@ -7,8 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-# from torch.utils.tensorboard import SummaryWriter
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
 from model.split import split_to_jamo
 from model.net import CharCNN
 from model.data import Corpus
