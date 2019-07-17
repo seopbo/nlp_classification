@@ -1,0 +1,10 @@
+{
+  "num_classes": 2,
+  "embedding_dim": 16,
+  "hidden_dim": 128,
+  "min_length": 15,
+  "epochs": 5,
+  "batch_size": 128,
+  "learning_rate": 1e-3,
+  "summary_step": 1000
+}

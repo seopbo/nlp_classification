@@ -1,65 +1,130 @@
-import re
-import torch
-from torch.nn.utils.rnn import pad_sequence
-from typing import List, Tuple
+from typing import List, Callable, Union
 
 
-def split_to_jamo(string: str) -> List[str]:
-    # 유니코드 한글 시작 : 44032, 끝 : 55199
-    _base_code = 44032
-    _chosung = 588
-    _jungsung = 28
-    # 초성 리스트. 00 ~ 18
-    _chosung_list = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ',
-                     'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ',
-                     'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
-    # 중성 리스트. 00 ~ 20
-    _jungsung_list = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ',
-                      'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ',
-                      'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ']
-    # 종성 리스트. 00 ~ 27 + 1(1개 없음)
-    _jongsung_list = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ',
-                      'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ',
-                      'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ']
+class Vocab:
+    def __init__(self, list_of_tokens=None, padding_token='<pad>', unknown_token='<unk>',
+                 bos_token='<bos>', eos_token='<eos>', reserved_tokens=None, unknown_token_idx=0):
+        self._unknown_token = unknown_token
+        self._padding_token = padding_token
+        self._bos_token = bos_token
+        self._eos_token = eos_token
+        self._reserved_tokens = reserved_tokens
+        self._special_tokens = []
 
-    def split(sequence):
-        split_string = list(sequence)
-        list_of_tokens = []
-        for char in split_string:
-            # 한글 여부 check 후 분리
-            if re.match('.*[ㄱ-ㅎㅏ-ㅣ가-힣]+.*', char) is not None:
-                if ord(char) < _base_code:
-                    list_of_tokens.append(char)
-                    continue
+        for tkn in [self._padding_token, self._bos_token, self._eos_token]:
+            if tkn:
+                self._special_tokens.append(tkn)
 
-                char_code = ord(char) - _base_code
-                alphabet1 = int(char_code / _chosung)
-                list_of_tokens.append(_chosung_list[alphabet1])
-                alphabet2 = int((char_code - (_chosung * alphabet1)) / _jungsung)
-                list_of_tokens.append(_jungsung_list[alphabet2])
-                alphabet3 = int((char_code - (_chosung * alphabet1) - (_jungsung * alphabet2)))
+        if self._reserved_tokens:
+            self._special_tokens.extend(self._reserved_tokens)
+        if self._unknown_token:
+            self._special_tokens.insert(unknown_token_idx, self._unknown_token)
 
-                if alphabet3 != 0:
-                    list_of_tokens.append(_jongsung_list[alphabet3])
-            else:
-                list_of_tokens.append(char)
+        if list_of_tokens:
+            self._special_tokens.extend(list(filter(lambda elm: elm not in self._special_tokens, list_of_tokens)))
+
+        self._token_to_idx, self._idx_to_token = self._build(self._special_tokens)
+        self._embedding = None
+
+    def to_indices(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
+        if isinstance(tokens, list):
+            return [self._token_to_idx[tkn] if tkn in self._token_to_idx else self._token_to_idx[self._unknown_token]
+                    for tkn in tokens]
+        else:
+            return self._token_to_idx[tokens] if tokens in self._token_to_idx else\
+                self._token_to_idx[self._unknown_token]
+
+    def to_tokens(self, indices: Union[int, List[int]]) -> Union[str, List[str]]:
+        if isinstance(indices, list):
+            return [self._idx_to_token[idx] for idx in indices]
+        else:
+            return self._idx_to_token[indices]
+
+    def _build(self, list_of_tokens):
+        token_to_idx = {tkn: idx for idx, tkn in enumerate(list_of_tokens)}
+        idx_to_token = {idx: tkn for idx, tkn in enumerate(list_of_tokens)}
+        return token_to_idx, idx_to_token
+
+    def __len__(self):
+        return len(self._token_to_idx)
+
+    @property
+    def token_to_idx(self):
+        return self._token_to_idx
+
+    @property
+    def idx_to_token(self):
+        return self._idx_to_token
+
+    @property
+    def padding_token(self):
+        return self._padding_token
+
+    @property
+    def unknown_token(self):
+        return self._unknown_token
+
+    @property
+    def bos_token(self):
+        return self._bos_token
+
+    @property
+    def eos_token(self):
+        return self._eos_token
+
+    @property
+    def embedding(self):
+        return self._embedding
+
+    @embedding.setter
+    def embedding(self, array):
+        self._embedding = array
+
+
+class Tokenizer:
+    """Tokenizer class"""
+    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
+                 pad_fn: Callable[[List[int]], List[int]] = None) -> None:
+        """Instantiating Tokenizer class
+        Args:
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
+            split_fn (Callable): a function that can act as a splitter
+            pad_fn (Callable): a function that can act as a padder
+        """
+        self._vocab = vocab
+        self._split = split_fn
+        self._pad = pad_fn
+
+    def split(self, string: str) -> List[str]:
+        list_of_tokens = self._split(string)
         return list_of_tokens
 
-    return split(string)
+    def transform(self, list_of_tokens: List[str]) -> List[int]:
+        list_of_indices = self._vocab.to_indices(list_of_tokens)
+        list_of_indices = self._pad(list_of_indices) if self._pad else list_of_indices
+        return list_of_indices
+
+    def split_and_transform(self, string: str) -> List[int]:
+        return self.transform(self.split(string))
+
+    @property
+    def vocab(self):
+        return self._vocab
 
 
-def batchify(data: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]) -> \
-        Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """custom collate_fn for DataLoader
+class PadSequence:
+    def __init__(self, length: int, pad_val: int = 0, clip: bool = True) -> None:
 
-    Args:
-        data (list): list of torch.Tensors
+        self._length = length
+        self._pad_val = pad_val
+        self._clip = clip
 
-    Returns:
-        data (tuple): tuple of torch.Tensors
-    """
-    indices, labels, lengths = zip(*data)
-    indices = pad_sequence(indices, batch_first=True, padding_value=1)
-    labels = torch.stack(labels, 0)
-    lengths = torch.stack(lengths, 0)
-    return indices, labels, lengths
+    def __call__(self, sample):
+        sample_length = len(sample)
+        if sample_length >= self._length:
+            if self._clip and sample_length > self._length:
+                return sample[:self._length]
+            else:
+                return sample
+        else:
+            return sample + [self._pad_val for _ in range(self._length - sample_length)]

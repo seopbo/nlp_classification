@@ -10,7 +10,7 @@ dataset = dataset.loc[dataset['document'].isna().apply(lambda elm: not elm), :]
 tr, val = train_test_split(dataset, test_size=0.2, random_state=777)
 
 tr.to_csv(cwd / 'data' / 'train.txt', sep='\t', index=False)
-val.to_csv(cwd / 'data' / 'val.txt', sep='\t', index=False)
+val.to_csv(cwd / 'data' / 'validation.txt', sep='\t', index=False)
 
 tst_filepath = cwd / 'data/ratings_test.txt'
 tst = pd.read_csv(tst_filepath, sep='\t').loc[:, ['document', 'label']]
