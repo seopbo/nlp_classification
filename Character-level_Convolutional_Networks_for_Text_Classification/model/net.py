@@ -41,8 +41,13 @@ class CharCNN(nn.Module):
                                          nn.ReLU(),
                                          nn.Dropout(),
                                          nn.Linear(in_features=512, out_features=num_classes))
+        self.apply(self._initailze)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         feature = self._extractor(x)
         score = self._classifier(feature)
         return score
+
+    def _initailze(self, layer):
+        if isinstance(layer, (nn.Linear, nn.Conv1d)):
+            nn.init.kaiming_uniform_(layer.weight)

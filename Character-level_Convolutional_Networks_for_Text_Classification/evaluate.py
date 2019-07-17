@@ -11,7 +11,6 @@ from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
