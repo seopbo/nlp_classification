@@ -27,7 +27,7 @@ The papers were implemented in using korean corpus
 * [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as KoBERT)
   + https://arxiv.org/abs/1810.04805
 
-### Semantic textual similarity
+### Semantic textual similarity or Paraphrase detection
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
 
@@ -38,7 +38,11 @@ The papers were implemented in using korean corpus
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
   + https://arxiv.org/abs/1703.03130
-* [x] BERT_pair_sentence_classification
+* [ ] Siamese recurrent architectures for learning sentence similarity 
+  + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
+* [ ] Stochastic Answer Networks for Natural Language Inference
+  + https://arxiv.org/abs/1804.07888
+* [ ] BERT_pair_sentence_classification
   + https://arxiv.org/abs/1810.04805
 
 ### Language model
@@ -61,12 +65,14 @@ The papers were implemented in using korean corpus
 
 ### Neural machine translation
 * [ ] Effective Approaches to Attention-based Neural Machine Translation
-	+ https://arxiv.org/abs/1508.04025
+	+ https://arxiv.org/abs/1608.07905
 * [ ] Attention Is All You Need
 	+ https://arxiv.org/abs/1706.03762
 
 
 ### Machine reading comprension
+* [ ] Machine Comprehension Using Match-LSTM and Answer Pointer
+	+ https://arxiv.org/abs/1611.01603
 * [ ] Bi-directional attention flow for machine comprehension
 	+ https://arxiv.org/abs/1611.01603
 * [ ] BERT_question_answering
