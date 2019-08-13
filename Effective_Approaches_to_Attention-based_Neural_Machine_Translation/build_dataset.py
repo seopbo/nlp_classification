@@ -23,14 +23,8 @@ for filepath in list_of_filepath:
     else:
         ko.append(corpus)
 
-tr = pd.DataFrame({'ko': ko[2], 'en': en[2]})
-tr = tr[(tr['ko'].apply(bool) & tr['en'].apply(bool))]
-tr.to_csv((data_dir / 'train').with_suffix('.csv'), index=False)
 
-dev = pd.DataFrame({'ko': ko[1], 'en': en[1]})
-dev = dev[(dev['ko'].apply(bool) & dev['en'].apply(bool))]
-dev.to_csv((data_dir / 'dev').with_suffix('.csv'), index=False)
-
-test = pd.DataFrame({'ko': ko[0], 'en': en[0]})
-test = test[(test['ko'].apply(bool) & test['en'].apply(bool))]
-test.to_csv((data_dir / 'test').with_suffix('.csv'), index=False)
+for ds in zip(ko, en, ['dev', 'test', 'train']):
+    df = pd.DataFrame({'ko': ds[0], 'en': ds[1]})
+    df = df[(df['ko'].apply(bool) & df['en'].apply(bool))]
+    df.to_csv((data_dir / ds[2]).with_suffix('.txt'), index=False, sep='\t')
