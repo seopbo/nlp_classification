@@ -24,16 +24,17 @@ class Config:
 
 
 class CheckpointManager:
-    def __init__(self, model_dir):
+    def __init__(self, model_dir, device=None):
         if not isinstance(model_dir, Path):
             model_dir = Path(model_dir)
         self._model_dir = model_dir
+        self.device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
 
     def save_checkpoint(self, state, filename):
         torch.save(state, self._model_dir / filename)
 
     def load_checkpoint(self, filename):
-        state = torch.load(self._model_dir / filename)
+        state = torch.load(self._model_dir / filename, map_location=self.device)
         return state
 
 
