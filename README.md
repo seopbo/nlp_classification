@@ -27,7 +27,7 @@ The papers were implemented in using korean corpus
 * [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as KoBERT)
   + https://arxiv.org/abs/1810.04805
 
-### Semantic textual similarity or Paraphrase detection
+### Paraphrase detection
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
 
@@ -42,7 +42,7 @@ The papers were implemented in using korean corpus
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
 * [ ] Stochastic Answer Networks for Natural Language Inference
   + https://arxiv.org/abs/1804.07888
-* [ ] BERT_pair_sentence_classification
+* [ ] BERT_pairwise_text_classification
   + https://arxiv.org/abs/1810.04805
 
 ### Language model
