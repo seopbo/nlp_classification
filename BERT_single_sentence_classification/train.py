@@ -5,11 +5,11 @@ import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
 from torch.utils.data import DataLoader
-from pytorch_pretrained_bert.modeling import BertConfig
+from pytorch_transformers.modeling_bert import BertConfig
 from pretrained.tokenization import BertTokenizer
 from model.net import BertClassifier
 from model.data import Corpus
-from model.utils import Tokenizer, PadSequence
+from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
 
+args = argparse.Namespace(data_dir='data', model_dir='experiments/base_model')
 
 if __name__ == '__main__':
     args = parser.parse_args()
@@ -33,18 +34,18 @@ if __name__ == '__main__':
     with open('pretrained/vocab.pkl', mode='rb') as io:
         vocab = pickle.load(io)
     pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
-    tokenizer = Tokenizer(vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence)
+    preprocessor = PreProcessor(vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence)
 
     # model
     config = BertConfig('pretrained/bert_config.json')
-    model = BertClassifier(config, num_labels=model_config.num_classes, vocab=tokenizer.vocab)
+    model = BertClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     bert_pretrained = torch.load('pretrained/pytorch_model.bin')
     model.load_state_dict(bert_pretrained, strict=False)
 
     # training
-    tr_ds = Corpus(data_config.tr, tokenizer.preprocess)
+    tr_ds = Corpus(data_config.tr, preprocessor.preprocess)
     tr_dl = DataLoader(tr_ds, batch_size=model_config.batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_ds = Corpus(data_config.val, tokenizer.preprocess)
+    val_ds = Corpus(data_config.val, preprocessor.preprocess)
     val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
 
     loss_fn = nn.CrossEntropyLoss()

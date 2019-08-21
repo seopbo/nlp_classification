@@ -15,5 +15,6 @@
   "pooler_size_per_head": 128, 
   "pooler_type": "first_token_transform", 
   "type_vocab_size": 2, 
-  "vocab_size": 30797
+  "vocab_size": 30797,
+  "layer_norm_eps": 1e-12
 }

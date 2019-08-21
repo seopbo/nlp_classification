@@ -8,7 +8,7 @@ from pytorch_pretrained_bert.modeling import BertConfig
 from pretrained.tokenization import BertTokenizer
 from model.net import BertClassifier
 from model.data import Corpus
-from model.utils import Tokenizer, PadSequence
+from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 
@@ -32,18 +32,18 @@ if __name__ == '__main__':
     with open('pretrained/vocab.pkl', mode='rb') as io:
         vocab = pickle.load(io)
     pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
-    tokenizer = Tokenizer(vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence)
+    preprocessor = PreProcessor(vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence)
 
     # model (restore)
     checkpoint_manager = CheckpointManager(model_dir)
     checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + '.tar')
     config = BertConfig('pretrained/bert_config.json')
-    model = BertClassifier(config, num_labels=model_config.num_classes, vocab=tokenizer.vocab)
+    model = BertClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     model.load_state_dict(checkpoint['model_state_dict'])
 
     # evaluation
     filepath = getattr(data_config, args.data_name)
-    ds = Corpus(filepath, tokenizer.preprocess)
+    ds = Corpus(filepath, preprocessor.preprocess)
     dl = DataLoader(ds, batch_size=model_config.batch_size, num_workers=4)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
