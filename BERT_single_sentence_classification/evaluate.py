@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
-from pytorch_pretrained_bert.modeling import BertConfig
+from pytorch_transformers.modeling_bert import BertConfig
 from pretrained.tokenization import BertTokenizer
 from model.net import BertClassifier
 from model.data import Corpus

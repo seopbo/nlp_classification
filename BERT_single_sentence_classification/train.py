@@ -13,14 +13,13 @@ from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
-# from torch.utils.tensorboard import SummaryWriter
-from tensorboardX import SummaryWriter
+from torch.utils.tensorboard import SummaryWriter
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
 
-args = argparse.Namespace(data_dir='data', model_dir='experiments/base_model')
 
 if __name__ == '__main__':
     args = parser.parse_args()
