@@ -21,6 +21,6 @@ class Corpus(Dataset):
 
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         q1, q2, is_duplicate = self._corpus.iloc[idx].tolist()
-        tokens2indices = torch.tensor(self._transform(q1, q2))
+        list_of_indices, list_of_token_types = [torch.tensor(elm) for elm in self._transform(q1, q2)]
         label = torch.tensor(is_duplicate)
-        return tokens2indices, label
+        return list_of_indices, list_of_token_types, label

@@ -169,8 +169,16 @@ class PadSequence:
 
 class PreProcessor(Tokenizer):
     def preprocess(self, q1, q2):
-        list_of_tokens_from_q1 = self.split(q1)
-        list_of_tokens_from_q2 = self.split(q2)
-        list_of_tokens = ['[CLS]'] + list_of_tokens_from_q1 + ['[SEP]'] + list_of_tokens_from_q2
+        list_of_tokens_q1 = self.split(q1)
+        list_of_tokens_q1 = ['[CLS]'] + list_of_tokens_q1 + ['[SEP]']
+        lisf_ot_token_types_q1 = [0 for _ in range(len(list_of_tokens_q1))]
+
+        list_of_tokens_q2 = self.split(q2)
+        lisf_ot_token_types_q2 = [1 for _ in range(len(list_of_tokens_q2))]
+
+        list_of_tokens = list_of_tokens_q1 + list_of_tokens_q2
+        list_of_token_types = lisf_ot_token_types_q1 + lisf_ot_token_types_q2
         list_of_indices = self.transform(list_of_tokens)
-        return list_of_indices
+        list_of_token_types += (len(list_of_indices) - len(list_of_token_types)) * [1]
+
+        return list_of_indices, list_of_token_types

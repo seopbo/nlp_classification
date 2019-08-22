@@ -7,7 +7,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from pytorch_transformers.modeling_bert import BertConfig
 from pretrained.tokenization import BertTokenizer
-from model.net import BertClassifier
+from model.net import PairwiseClassifier
 from model.data import Corpus
 from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     # model
     config = BertConfig('pretrained/bert_config.json')
-    model = BertClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
+    model = PairwiseClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     bert_pretrained = torch.load('pretrained/pytorch_model.bin')
     model.load_state_dict(bert_pretrained, strict=False)
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             {"params": model.bert.parameters(), "lr": model_config.learning_rate / 100},
             {"params": model.classifier.parameters(), "lr": model_config.learning_rate},
 
-        ])
+        ], weight_decay=5e-4)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
         model.train()
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
-            x_mb, y_mb = map(lambda elm: elm.to(device), mb)
+            x_mb, x_types_mb, y_mb = map(lambda elm: elm.to(device), mb)
             opt.zero_grad()
-            y_hat_mb = model(x_mb)
+            y_hat_mb = model(x_mb, x_types_mb)
             mb_loss = loss_fn(y_hat_mb, y_mb)
             mb_loss.backward()
             opt.step()

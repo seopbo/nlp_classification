@@ -6,7 +6,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from pytorch_transformers.modeling_bert import BertConfig
 from pretrained.tokenization import BertTokenizer
-from model.net import BertClassifier
+from model.net import PairwiseClassifier
 from model.data import Corpus
 from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     checkpoint_manager = CheckpointManager(model_dir)
     checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + '.tar')
     config = BertConfig('pretrained/bert_config.json')
-    model = BertClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
+    model = PairwiseClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     model.load_state_dict(checkpoint['model_state_dict'])
 
     # evaluation
