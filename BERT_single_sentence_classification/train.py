@@ -7,7 +7,7 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 from pytorch_transformers.modeling_bert import BertConfig
 from pretrained.tokenization import BertTokenizer
-from model.net import BertClassifier
+from model.net import SentenceClassifier
 from model.data import Corpus
 from model.utils import PreProcessor, PadSequence
 from model.metric import evaluate, acc
@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     # model
     config = BertConfig('pretrained/bert_config.json')
-    model = BertClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
+    model = SentenceClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     bert_pretrained = torch.load('pretrained/pytorch_model.bin')
     model.load_state_dict(bert_pretrained, strict=False)
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             {"params": model.bert.parameters(), "lr": model_config.learning_rate / 100},
             {"params": model.classifier.parameters(), "lr": model_config.learning_rate},
 
-        ])
+        ], weight_decay=5e-4)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)

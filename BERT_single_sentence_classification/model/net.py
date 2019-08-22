@@ -2,9 +2,9 @@ import torch.nn as nn
 from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 
-class BertClassifier(BertPreTrainedModel):
+class SentenceClassifier(BertPreTrainedModel):
     def __init__(self, config, num_classes, vocab) -> None:
-        super(BertClassifier, self).__init__(config)
+        super(SentenceClassifier, self).__init__(config)
         self.bert = BertModel(config)
         self.dropout = nn.Dropout(config.hidden_dropout_prob)
         self.classifier = nn.Linear(config.hidden_size, num_classes)
