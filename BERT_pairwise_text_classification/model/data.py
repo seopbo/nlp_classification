@@ -13,7 +13,7 @@ class Corpus(Dataset):
             filepath (str): filepath
             transform_fn (Callable): a function that can act as a transformer
         """
-        self._corpus = pd.read_csv(filepath, sep='\t').loc[:, ['document', 'label']]
+        self._corpus = pd.read_csv(filepath, sep='\t')
         self._transform = transform_fn
 
     def __len__(self) -> int:
@@ -24,5 +24,3 @@ class Corpus(Dataset):
         tokens2indices = torch.tensor(self._transform(q1, q2))
         label = torch.tensor(is_duplicate)
         return tokens2indices, label
-
-from

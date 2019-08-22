@@ -137,8 +137,6 @@ class Tokenizer:
     def split_and_transform(self, string: str) -> List[int]:
         return self.transform(self.split(string))
 
-
-
     @property
     def vocab(self):
         return self._vocab
