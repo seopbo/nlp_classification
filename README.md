@@ -34,6 +34,7 @@ The papers were implemented in using korean corpus
 |                  | Train ACC (6,060) | Validation ACC (1,516) |
 | :--------------- | :-------: | :------------: |
 | SAN           |  91.93%  |     81.46%     |
+| KoBERT | 90.80% | 93.33% |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
@@ -42,7 +43,7 @@ The papers were implemented in using korean corpus
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
 * [ ] Stochastic Answer Networks for Natural Language Inference
   + https://arxiv.org/abs/1804.07888
-* [ ] BERT_pairwise_text_classification
+* [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as KoBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Language model
