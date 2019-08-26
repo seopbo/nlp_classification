@@ -129,3 +129,13 @@ class PadSequence:
                 return sample
         else:
             return sample + [self._pad_val for _ in range(self._length - sample_length)]
+
+
+class TeacherForcing(Tokenizer):
+    def process(self, string: str) -> List[int]:
+        list_of_tokens = self.split(string)
+        list_of_tokens_bos = [self._vocab.bos_token] + list_of_tokens
+        list_of_tokens_eos = list_of_tokens + [self._vocab.eos_token]
+        list_of_indices_bos = self.transform(list_of_tokens_bos)
+        list_of_indices_eos = self.transform(list_of_tokens_eos)
+        return list_of_indices_bos, list_of_indices_eos
