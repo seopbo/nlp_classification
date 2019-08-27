@@ -1,7 +1,7 @@
 import pickle
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch.nn.utils.rnn import pack_padded_sequence, PackedSequence, pad_packed_sequence
 from torch.utils.data import DataLoader
 from typing import Union, Tuple
 from model.utils import Vocab, Tokenizer, TeacherForcing
@@ -16,7 +16,7 @@ with open('data/vocab_en.pkl', mode='rb') as io:
 en_processor = TeacherForcing(vocab_en, split_space)
 
 ds = NMTCorpus('data/train.txt', ko_processor.split_and_transform, en_processor.process)
-dl = DataLoader(ds, 2, shuffle=False, num_workers=4, collate_fn=batchify)
+dl = DataLoader(ds, 2, shuffle=True, num_workers=4, collate_fn=batchify)
 x, y1, y2 = next(iter(dl))
 
 
@@ -47,3 +47,67 @@ class Embedding(nn.Module):
             return fmap, fmap_length
         else:
             return fmap
+
+
+class Linker(nn.Module):
+    """Linker class"""
+    def __init__(self, permuting: bool = True):
+        """Instantiating Linker class
+        Args:
+            permuting (bool): permuting (n, c, l) -> (n, l, c). Default: True
+        """
+        super(Linker, self).__init__()
+        self._permuting = permuting
+
+    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> PackedSequence:
+        fmap, fmap_length = x
+        fmap = fmap.permute(0, 2, 1) if self._permuting else fmap
+        return pack_padded_sequence(fmap, fmap_length, batch_first=True, enforce_sorted=False)
+
+
+class Encoder(nn.Module):
+    """Encoder class"""
+    def __init__(self, input_size: int, hidden_size: int, using_sequence: bool = True) -> None:
+        """Instantiating Encoder class
+        Args:
+            input_size (int): the number of expected features in the input x
+            hidden_size (int): the number of features in the hidden state h
+            using_sequence (bool): using all hidden states of sequence. Default: True
+        """
+        super(Encoder, self).__init__()
+        self._using_sequence = using_sequence
+        self._ops = nn.LSTM(input_size, hidden_size, batch_first=True, num_layers=2)
+
+    def forward(self, x: PackedSequence) -> torch.Tensor:
+        outputs, hc = self._ops(x)
+
+        if self._using_sequence:
+            hiddens = pad_packed_sequence(outputs)[0].permute(1, 0, 2)
+            return hiddens
+        else:
+            feature = torch.cat([*hc[0]], dim=1)
+            return feature
+
+
+class AttnDecoder(nn.Module):
+    def __init__(self):
+        super(AttnDecoder, self).__init__()
+
+
+
+    def forward(self, ):
+ko_emb = Embedding(ko_processor.vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
+en_emb = Embedding(en_processor.vocab, padding_idx=1, freeze=False, permuting=False, tracking=True)
+linker = Linker(permuting=False)
+
+x_mb = linker(ko_emb(x))
+encoder = Encoder(input_size=300, hidden_size=128, using_sequence=True)
+encoder_outputs = encoder(x_mb)
+
+y_mb = linker(en_emb(y1))
+decoder_outputs = encoder(y_mb)
+
+encoder_outputs.shape
+
+encoder_outputs.shape
+decoder_outputs.unsqueeze(1).shape

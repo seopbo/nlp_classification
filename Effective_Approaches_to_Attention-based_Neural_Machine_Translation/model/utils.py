@@ -42,7 +42,7 @@ class Vocab:
 
     def _build(self, list_of_tokens):
         token_to_idx = {tkn: idx for idx, tkn in enumerate(list_of_tokens)}
-        idx_to_token = {idx: tkn for idx, tkn in enumerate(list_of_tokens)}
+        idx_to_token = list_of_tokens
         return token_to_idx, idx_to_token
 
     def __len__(self):
