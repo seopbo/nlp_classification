@@ -19,6 +19,7 @@ ptr_embedding = nlp.embedding.create('fasttext', source='wiki.ko', load_ngrams=T
 tmp_vocab.set_embedding(ptr_embedding)
 array = tmp_vocab.embedding.idx_to_vec.asnumpy()
 
+
 vocab_ko = Vocab(list_of_token_ko, bos_token=None, eos_token=None)
 vocab_ko.embedding = array
 

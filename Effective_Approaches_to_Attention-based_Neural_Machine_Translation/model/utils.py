@@ -83,18 +83,15 @@ class Vocab:
 
 class Tokenizer:
     """Tokenizer class"""
-    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
-                 pad_fn: Callable[[List[int]], List[int]] = None) -> None:
+    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]]) -> None:
         """Instantiating Tokenizer class
 
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
             split_fn (Callable): a function that can act as a splitter
-            pad_fn (Callable): a function that can act as a padder
         """
         self._vocab = vocab
         self._split = split_fn
-        self._pad = pad_fn
 
     def split(self, string: str) -> List[str]:
         list_of_tokens = self._split(string)
@@ -102,11 +99,7 @@ class Tokenizer:
 
     def transform(self, list_of_tokens: List[str]) -> List[int]:
         list_of_indices = self._vocab.to_indices(list_of_tokens)
-        list_of_indices = self._pad(list_of_indices) if self._pad else list_of_indices
         return list_of_indices
-
-    def split_and_transform(self, string: str) -> List[int]:
-        return self.transform(self.split(string))
 
     @property
     def vocab(self):
@@ -131,11 +124,16 @@ class PadSequence:
             return sample + [self._pad_val for _ in range(self._length - sample_length)]
 
 
-class TeacherForcing(Tokenizer):
+class SourceProcessor(Tokenizer):
     def process(self, string: str) -> List[int]:
         list_of_tokens = self.split(string)
-        list_of_tokens_bos = [self._vocab.bos_token] + list_of_tokens
-        list_of_tokens_eos = list_of_tokens + [self._vocab.eos_token]
-        list_of_indices_bos = self.transform(list_of_tokens_bos)
-        list_of_indices_eos = self.transform(list_of_tokens_eos)
-        return list_of_indices_bos, list_of_indices_eos
+        list_of_indices = self.transform(list_of_tokens)
+        return list_of_indices
+
+
+class TargetProcessor(Tokenizer):
+    def process(self, string: str) -> List[int]:
+        list_of_tokens = self.split(string)
+        list_of_tokens = list_of_tokens + [self.vocab.eos_token]
+        list_of_indices = self.transform(list_of_tokens)
+        return list_of_indices

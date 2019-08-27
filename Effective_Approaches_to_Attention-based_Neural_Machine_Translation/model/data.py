@@ -16,14 +16,12 @@ class NMTCorpus(Dataset):
 
     def __getitem__(self, idx):
         list_of_source = torch.tensor(self._src_transform(self._corpus.iloc[idx]['ko']))
-        list_of_indices_bos, list_of_indices_eos = [torch.tensor(elm) for elm in
-                                                    self._tgt_transform(self._corpus.iloc[idx]['en'])]
-        return list_of_source, list_of_indices_bos, list_of_indices_eos
+        list_of_target = torch.tensor(self._tgt_transform(self._corpus.iloc[idx]['en']))
+        return list_of_source, list_of_target
 
 
 def batchify(data: List[Tuple[torch.Tensor]]) -> Tuple[torch.tensor]:
-    source_mb, target_bos_mb, target_eos_mb = zip(*data)
+    source_mb, target_mb, = zip(*data)
     source_mb = pad_sequence(source_mb, batch_first=True, padding_value=1)
-    target_bos_mb = pad_sequence(target_bos_mb, batch_first=True, padding_value=1)
-    target_eos_mb = pad_sequence(target_eos_mb, batch_first=True, padding_value=1)
-    return source_mb, target_bos_mb, target_eos_mb
+    target_mb = pad_sequence(target_mb, batch_first=True, padding_value=1)
+    return source_mb, target_mb
