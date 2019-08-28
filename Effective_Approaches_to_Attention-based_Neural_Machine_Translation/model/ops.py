@@ -1,25 +1,9 @@
-import pickle
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.utils.rnn import pack_padded_sequence, PackedSequence, pad_packed_sequence
-from torch.utils.data import DataLoader
+from torch.nn.utils.rnn import pack_padded_sequence, PackedSequence
 from typing import Union, Tuple
-from model.utils import Vocab, SourceProcessor, TargetProcessor
-from model.data import batchify, NMTCorpus
-from model.split import split_morphs, split_space
-
-
-with open('data/vocab_ko.pkl', mode='rb') as io:
-    vocab_ko = pickle.load(io)
-ko_processor = SourceProcessor(vocab_ko, split_morphs)
-with open('data/vocab_en.pkl', mode='rb') as io:
-    vocab_en = pickle.load(io)
-en_processor = TargetProcessor(vocab_en, split_space)
-
-ds = NMTCorpus('data/train.txt', ko_processor.process, en_processor.process)
-dl = DataLoader(ds, 2, shuffle=False, num_workers=4, collate_fn=batchify)
-x, y = next(iter(dl))
+from model.utils import Vocab
 
 
 class Embedding(nn.Module):
@@ -67,99 +51,53 @@ class Linker(nn.Module):
         return pack_padded_sequence(fmap, fmap_length, batch_first=True, enforce_sorted=False)
 
 
-class Encoder(nn.Module):
-    """Encoder class"""
-    def __init__(self, input_size: int, hidden_size: int, vocab: Vocab) -> None:
-        """Instantiating Encoder class
+class GlobalAttn(nn.Module):
+    def __init__(self, method, encoder_hidden_dim, decoder_hidden_dim):
+        super(GlobalAttn, self).__init__()
+        self._method = method
+        self._encoder_hidden_dim = encoder_hidden_dim
+        self._decoder_hidden_dim = decoder_hidden_dim
 
-        Args:
-            input_size (int): the number of expected features in the input x
-            hidden_size (int): the number of features in the hidden state h
-        """
-        super(Encoder, self).__init__()
-        self._emb = Embedding(vocab=vocab, padding_idx=vocab.to_indices(vocab.padding_token), freeze=False,
-                              permuting=False, tracking=True)
-        self._linker = Linker(permuting=False)
-        self._ops = nn.LSTM(input_size, hidden_size, batch_first=True, num_layers=2)
+        if self._method == 'general':
+            self._wa = nn.Parameter(torch.Tensor(encoder_hidden_dim, decoder_hidden_dim))
+            nn.init.xavier_normal_(self._wa)
+        elif self._method == 'concat':
+            self._wa = nn.Parameter(torch.Tensor(encoder_hidden_dim + decoder_hidden_dim, 1))
+            nn.init.xavier_normal_(self._wa)
 
-    def forward(self, x: torch.Tensor, hc: Tuple[torch.Tensor, torch.Tensor] = None) ->\
-            Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        embed = self._emb(x)
-        packed_embed = self._linker(embed)
-        ops_outputs, hc = self._ops(packed_embed, hc)
-        ops_outputs, _ = pad_packed_sequence(ops_outputs, batch_first=True)
-        return ops_outputs, hc
+        self._attn = {'dot': self._dot_score,
+                      'general': self._general_score,
+                      'concat': self._concat_score}
 
+    def forward(self, decoder_output, encoder_outputs, source_length):
+        attn_weights = self._attn[self._method](decoder_output, encoder_outputs, source_length)
+        attn_weights = attn_weights.unsqueeze(-1)
+        context = torch.bmm(encoder_outputs.permute(0, 2, 1), attn_weights).squeeze()
+        return context
 
-# class Attn(nn.Module):
-#     def __init__(self, method, hidden_size):
-#         super(Attn, self).__init__()
-#         self.method = method
-#         if self.method not in ['dot', 'general', 'concat']:
-#             raise ValueError(self.method, "is not an appropriate attention method.")
-#         self.hidden_size = hidden_size
-#         if self.method == 'general':
-#             self.attn = nn.Linear(self.hidden_size, hidden_size)
-#         elif self.method == 'concat':
-#             self.attn = nn.Linear(self.hidden_size * 2, hidden_size)
-#             self.v = nn.Parameter(torch.FloatTensor(hidden_size))
-#
-#     def dot_score(self, hidden, encoder_output):
-#         return torch.sum(hidden * encoder_output, dim=2)
-#
-#     def general_score(self, hidden, encoder_output):
-#         energy = self.attn(encoder_output)
-#         return torch.sum(hidden * energy, dim=2)
-#
-#     def concat_score(self, hidden, encoder_output):
-#         energy = self.attn(torch.cat((hidden.expand(encoder_output.size(0), -1, -1), encoder_output), 2)).tanh()
-#         return torch.sum(self.v * energy, dim=2)
-#
-#     def forward(self, hidden, encoder_outputs):
-#         # Calculate the attention weights (energies) based on the given method
-#         if self.method == 'general':
-#             attn_energies = self.general_score(hidden, encoder_outputs)
-#         elif self.method == 'concat':
-#             attn_energies = self.concat_score(hidden, encoder_outputs)
-#         elif self.method == 'dot':
-#             attn_energies = self.dot_score(hidden, encoder_outputs)
-#
-#         # Transpose max_length and batch_size dimensions
-#         attn_energies = attn_energies.t()
-#
-#         # Return the softmax normalized probability scores (with added dimension)
-#         return F.softmax(attn_energies, dim=1).unsqueeze(1)
+    def _dot_score(self, decoder_output, encoder_outputs, source_length):
+        attn_mask = self._generate_mask(source_length)
+        score = torch.bmm(encoder_outputs, decoder_output.permute(0, 2, 1)).squeeze()
+        score[~attn_mask] = float('-inf')
+        attn_weights = F.softmax(score, dim=-1)
+        return attn_weights
 
+    def _general_score(self, decoder_output, encoder_outputs, source_length):
+        attn_mask = self._generate_mask(source_length)
+        score = torch.bmm(encoder_outputs @ self._wa, decoder_output.permute(0, 2, 1)).squeeze()
+        score[~attn_mask] = float('-inf')
+        attn_weights = F.softmax(score, dim=-1)
+        return attn_weights
 
-class Decoder(nn.Module):
-    """Decoder class"""
-    def __init__(self, input_size: int, hidden_size: int, vocab: Vocab) -> None:
-        """Instantiating Encoder class
+    def _concat_score(self, decoder_output, encoder_outputs, source_length):
+        attn_mask = self._generate_mask(source_length)
+        decoder_outputs = torch.cat([decoder_output for _ in range(encoder_outputs.size(1))], dim=1)
+        outputs = torch.cat([encoder_outputs, decoder_outputs], dim=-1)
+        score = (outputs @ self._wa).squeeze()
+        score[~attn_mask] = float('-inf')
+        attn_weights = F.softmax(score, dim=-1)
+        return attn_weights
 
-        Args:
-            input_size (int): the number of expected features in the input x
-            hidden_size (int): the number of features in the hidden state h
-        """
-        super(Decoder, self).__init__()
-        self._emb = Embedding(vocab=vocab, padding_idx=vocab.to_indices(vocab.padding_token),
-                              freeze=False, permuting=False, tracking=False)
-        self._ops = nn.LSTM(input_size, hidden_size, batch_first=True, num_layers=2)
-        self._classifier = nn.Linear(hidden_size, len(vocab))
-
-    def forward(self, x, hc):
-        embed = self._emb(x)
-        ops_output, hc = self._ops(embed, hc)
-        output = ops_output.squeeze(1)
-        output = self._classifier(output)
-        return ops_output, output, hc
-
-
-encoder = Encoder(input_size=300, hidden_size=128, vocab=ko_processor.vocab)
-encoder_outputs, encoder_hc = encoder(x)
-
-decoder = Decoder(input_size=300, hidden_size=128, vocab=en_processor.vocab)
-decoder_input = torch.LongTensor([vocab_en.to_indices(vocab_en.bos_token) for _ in range(2)]).reshape(-1,1)
-
-ops_output, output, hc = decoder(decoder_input, encoder_hc)
-
-y
+    def _generate_mask(self, source_length):
+        attn_mask = torch.arange(source_length.max())[None, :] < source_length[:, None]
+        return attn_mask
