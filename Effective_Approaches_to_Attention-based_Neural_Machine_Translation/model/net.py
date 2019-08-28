@@ -53,7 +53,7 @@ class AttnDecoder(nn.Module):
         self._dropout = nn.Dropout(drop_ratio)
         self._attn = GlobalAttn(method=method, encoder_hidden_dim=encoder_hidden_dim,
                                 decoder_hidden_dim=decoder_hidden_dim)
-        self._classifier = nn.Linear(encoder_hidden_dim + decoder_hidden_dim, len(vocab))
+        self._concat = nn.Linear(encoder_hidden_dim + decoder_hidden_dim, self._emb._ops.embedding_dim, bias=False)
 
     def forward(self, x, hc, encoder_outputs, source_length):
         embed = self._emb(x)
@@ -62,6 +62,6 @@ class AttnDecoder(nn.Module):
         ops_output = self._dropout(ops_output)
         context = self._attn(ops_output, encoder_outputs, source_length)
         ops_output = ops_output.squeeze(1)
-        output = torch.cat([ops_output, context], dim=-1)
-        decoder_output = self._classifier(output)
+        output = torch.tanh(self._concat(torch.cat([ops_output, context], dim=-1)))
+        decoder_output = output @ self._emb._ops.weight.t()
         return decoder_output, hc
