@@ -48,6 +48,7 @@ def evaluate(encoder, decoder, tgt_vocab, data_loader, device):
                 dec_input_mb = tgt_mb[:, [t]]  # next input is current target
             else:
                 mb_loss /= tgt_length_mb.max()
+                mb_loss *= src_mb.shape[0]
 
             loss += mb_loss.item()
     else:

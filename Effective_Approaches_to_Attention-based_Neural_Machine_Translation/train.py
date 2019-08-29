@@ -9,7 +9,7 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
-from model.split import split_morphs, split_space
+from model.split import Stemmer
 from model.net import Encoder, AttnDecoder
 from model.data import NMTCorpus, batchify
 from model.utils import SourceProcessor, TargetProcessor
@@ -34,11 +34,13 @@ if __name__ == '__main__':
     # processor
     with open(data_config.source_vocab, mode='rb') as io:
         src_vocab = pickle.load(io)
-    src_processor = SourceProcessor(src_vocab, split_morphs)
+    ko_stemmer = Stemmer(language='ko')
+    src_processor = SourceProcessor(src_vocab, ko_stemmer.extract_stem)
 
     with open(data_config.target_vocab, mode='rb') as io:
         tgt_vocab = pickle.load(io)
-    tgt_processor = TargetProcessor(tgt_vocab, split_space)
+    en_stemmer = Stemmer(language='en')
+    tgt_processor = TargetProcessor(tgt_vocab, en_stemmer.extract_stem)
 
     # model
     encoder = Encoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)

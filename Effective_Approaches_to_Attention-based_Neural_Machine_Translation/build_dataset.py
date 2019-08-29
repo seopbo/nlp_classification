@@ -1,6 +1,4 @@
 import pandas as pd
-from utils import Config
-from model.split import preprocess
 from pathlib import Path
 
 
@@ -15,15 +13,15 @@ if not data_dir.exists():
 ko = []
 en = []
 
+filepath = list_of_filepath[0]
 for filepath in list_of_filepath:
     with open(filepath, mode='r', encoding='utf-8') as io:
-        corpus = [preprocess(sen) for sen in io.readlines()]
+        corpus = [sen.strip() for sen in io.readlines()]
 
     if 'en' in filepath.suffix:
         en.append(corpus)
     else:
         ko.append(corpus)
-
 
 for ds in zip(ko, en, ['dev', 'test', 'train']):
     df = pd.DataFrame({'ko': ds[0], 'en': ds[1]})

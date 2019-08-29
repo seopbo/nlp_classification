@@ -137,6 +137,3 @@ class TargetProcessor(Tokenizer):
         list_of_tokens = list_of_tokens + [self.vocab.eos_token]
         list_of_indices = self.transform(list_of_tokens)
         return list_of_indices
-
-
-

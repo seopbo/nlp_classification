@@ -5,7 +5,7 @@
   "drop_ratio": 0.2,
   "epochs": 10,
   "batch_size": 128,
-  "learning_rate": 1.0,
+  "learning_rate": 5e-3,
   "teacher_forcing_ratio": 0.2,
   "clip_norm": 5,
   "summary_step": 1000

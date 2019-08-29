@@ -21,7 +21,7 @@ class NMTCorpus(Dataset):
 
 
 def batchify(data: List[Tuple[torch.Tensor]]) -> Tuple[torch.tensor]:
-    source_mb, target_mb, = zip(*data)
+    source_mb, target_mb = zip(*data)
     source_mb = pad_sequence(source_mb, batch_first=True, padding_value=1)
     target_mb = pad_sequence(target_mb, batch_first=True, padding_value=1)
     return source_mb, target_mb
