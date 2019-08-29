@@ -21,7 +21,7 @@ class Encoder(nn.Module):
         self._emb_dropout = nn.Dropout(drop_ratio)
         self._linker = Linker(permuting=False)
         self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            encoder_hidden_dim, batch_first=True, num_layers=2, dropout=drop_ratio)
+                            encoder_hidden_dim, batch_first=True, num_layers=4, dropout=drop_ratio)
         self._dropout = nn.Dropout(drop_ratio)
 
     def forward(self, x: torch.Tensor, hc: Tuple[torch.Tensor, torch.Tensor] = None) ->\
@@ -49,7 +49,7 @@ class AttnDecoder(nn.Module):
                               freeze=False, permuting=False, tracking=False)
         self._emb_dropout = nn.Dropout(drop_ratio)
         self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            decoder_hidden_dim, batch_first=True, num_layers=2, dropout=drop_ratio)
+                            decoder_hidden_dim, batch_first=True, num_layers=4, dropout=drop_ratio)
         self._dropout = nn.Dropout(drop_ratio)
         self._attn = GlobalAttn(method=method, encoder_hidden_dim=encoder_hidden_dim,
                                 decoder_hidden_dim=decoder_hidden_dim)
