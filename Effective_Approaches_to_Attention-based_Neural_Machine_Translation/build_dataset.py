@@ -1,4 +1,5 @@
 import pandas as pd
+from utils import Config
 from model.split import preprocess
 from pathlib import Path
 

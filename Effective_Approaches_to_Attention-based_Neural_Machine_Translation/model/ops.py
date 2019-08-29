@@ -99,5 +99,6 @@ class GlobalAttn(nn.Module):
         return attn_weights
 
     def _generate_mask(self, source_length):
-        attn_mask = torch.arange(source_length.max())[None, :] < source_length[:, None]
+        attn_mask = torch.arange(source_length.max(),
+                                 device=source_length.device)[None, :] < source_length[:, None]
         return attn_mask

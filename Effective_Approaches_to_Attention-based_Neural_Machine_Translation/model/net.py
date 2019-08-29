@@ -32,7 +32,7 @@ class Encoder(nn.Module):
         encoder_outputs, hc = self._ops(packed_embed, hc)
         encoder_outputs, _ = pad_packed_sequence(encoder_outputs, batch_first=True)
         encoder_outputs = self._dropout(encoder_outputs)
-        return encoder_outputs, hc, source_length
+        return encoder_outputs, source_length, hc
 
 
 class AttnDecoder(nn.Module):
