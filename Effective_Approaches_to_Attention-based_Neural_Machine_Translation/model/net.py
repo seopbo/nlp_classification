@@ -12,8 +12,9 @@ class Encoder(nn.Module):
         """Instantiating Encoder class
 
         Args:
-            input_size (int): the number of expected features in the input x
-            encoder_hidden_dim (int): the number of features in the hidden state h
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
+            encoder_hidden_dim (int): the dimension of hidden state and cell state
+            drop_ratio (float): ratio of drop out
         """
         super(Encoder, self).__init__()
         self._emb = Embedding(vocab=vocab, padding_idx=vocab.to_indices(vocab.padding_token), freeze=False,
@@ -24,12 +25,11 @@ class Encoder(nn.Module):
                             encoder_hidden_dim, batch_first=True, num_layers=4, dropout=drop_ratio)
         self._dropout = nn.Dropout(drop_ratio)
 
-    def forward(self, x: torch.Tensor, hc: Tuple[torch.Tensor, torch.Tensor] = None) ->\
-            Tuple[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         embed, source_length = self._emb(x)
         embed = self._emb_dropout(embed)
         packed_embed = self._linker((embed, source_length))
-        encoder_outputs, hc = self._ops(packed_embed, hc)
+        encoder_outputs, hc = self._ops(packed_embed)
         encoder_outputs, _ = pad_packed_sequence(encoder_outputs, batch_first=True)
         encoder_outputs = self._dropout(encoder_outputs)
         return encoder_outputs, source_length, hc
@@ -65,3 +65,25 @@ class AttnDecoder(nn.Module):
         output = torch.tanh(self._concat(torch.cat([ops_output, context], dim=-1)))
         decoder_output = output @ self._emb._ops.weight.t()
         return decoder_output, hc
+
+import pickle
+from model.data import NMTCorpus
+from torch.utils.data import DataLoader
+from model.data import batchify
+from model.utils import SourceProcessor, TargetProcessor
+from model.split import Stemmer
+
+with open('data/vocab_ko.pkl', mode='rb') as io:
+    src_vocab = pickle.load(io)
+src_stemmer = Stemmer(language='ko')
+src_processor = SourceProcessor(src_vocab, src_stemmer.extract_stem)
+
+
+with open('data/vocab_en.pkl', mode='rb') as io:
+    tgt_vocab = pickle.load(io)
+tgt_stemmer = Stemmer(language='en')
+tgt_processor = TargetProcessor(tgt_vocab, tgt_stemmer.extract_stem)
+ds = NMTCorpus('data/train.txt', src_processor.process, tgt_processor.process)
+dl = DataLoader(ds, batch_size=2, collate_fn=batchify)
+mb = next(iter(dl))
+

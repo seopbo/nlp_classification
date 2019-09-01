@@ -30,7 +30,6 @@ if __name__ == '__main__':
     model_dir = Path(args.model_dir)
     data_config = Config(json_path=data_dir / 'config.json')
     model_config = Config(json_path=model_dir / 'config.json')
-
     # processor
     with open(data_config.source_vocab, mode='rb') as io:
         src_vocab = pickle.load(io)
