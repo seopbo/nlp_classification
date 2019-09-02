@@ -7,7 +7,7 @@ import torch.optim as optim
 from pathlib import Path
 from tqdm import tqdm
 from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 from model.split import Stemmer
 from model.net import Encoder, AttnDecoder
@@ -61,9 +61,10 @@ if __name__ == '__main__':
     summary_manager = SummaryManager(model_dir)
     best_val_loss = 1e+10
 
-    opt = optim.Adam([{'params': encoder.parameters()},
-                      {'params': decoder.parameters()}], lr=model_config.learning_rate, weight_decay=5e-4)
-    scheduler = ReduceLROnPlateau(opt, patience=5, min_lr=5e-4)
+    opt = optim.RMSprop([{'params': encoder.parameters()},
+                         {'params': decoder.parameters()}], lr=model_config.learning_rate, weight_decay=5e-4)
+    scheduler = CosineAnnealingWarmRestarts(opt, T_0=1)
+    # scheduler = CyclicLR(opt, base_lr=1e-4, max_lr=model_config.learning_rate, step_size_up=2000)
 
     for epoch in tqdm(range(model_config.epochs), desc='epochs'):
         tr_loss = 0
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
             mb_loss = 0
             src_mb, tgt_mb = map(lambda elm: elm.to(device), mb)
-
+            scheduler.step(epoch + step / len(tr_dl))
             opt.zero_grad()
             # encoder
             enc_outputs_mb, src_length_mb, enc_hc_mb = encoder(src_mb)
@@ -112,6 +113,7 @@ if __name__ == '__main__':
             nn.utils.clip_grad_norm_(decoder.parameters(), model_config.clip_norm)
             opt.step()
 
+
             tr_loss += mb_loss.item()
 
             if (epoch * len(tr_dl) + step) % model_config.summary_step == 0:
@@ -126,7 +128,7 @@ if __name__ == '__main__':
 
             tr_summary = {'loss': tr_loss}
             val_loss = evaluate(encoder, decoder, tgt_vocab, val_dl, device)
-            scheduler.step(val_loss)
+
             val_summary = {'loss': val_loss}
             tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
                        '{:.3f}'.format(epoch + 1, tr_summary['loss'], val_summary['loss']))

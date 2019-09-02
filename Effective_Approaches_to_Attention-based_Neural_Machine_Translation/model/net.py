@@ -21,7 +21,7 @@ class Encoder(nn.Module):
                               permuting=False, tracking=True)
         self._linker = Linker(permuting=False)
         self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            encoder_hidden_dim, batch_first=True, num_layers=4, dropout=drop_ratio)
+                            encoder_hidden_dim, batch_first=True, num_layers=3, dropout=drop_ratio)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         embed, source_length = self._emb(x)
@@ -48,7 +48,7 @@ class AttnDecoder(nn.Module):
         self._emb = Embedding(vocab=vocab, padding_idx=vocab.to_indices(vocab.padding_token),
                               freeze=False, permuting=False, tracking=False)
         self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            decoder_hidden_dim, batch_first=True, num_layers=4, dropout=drop_ratio)
+                            decoder_hidden_dim, batch_first=True, num_layers=3, dropout=drop_ratio)
         self._attn = GlobalAttn(method=method, encoder_hidden_dim=encoder_hidden_dim,
                                 decoder_hidden_dim=decoder_hidden_dim)
         self._concat = nn.Linear(encoder_hidden_dim + decoder_hidden_dim, self._emb._ops.embedding_dim, bias=False)
