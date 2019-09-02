@@ -16,12 +16,9 @@ from model.utils import SourceProcessor, TargetProcessor
 from model.metric import mask_nll_loss, sequence_mask, evaluate
 from utils import Config, CheckpointManager, SummaryManager
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
-
-args = argparse.Namespace(data_dir='data', model_dir='experiments/base_model')
 
 
 if __name__ == '__main__':
@@ -30,16 +27,17 @@ if __name__ == '__main__':
     model_dir = Path(args.model_dir)
     data_config = Config(json_path=data_dir / 'config.json')
     model_config = Config(json_path=model_dir / 'config.json')
+
     # processor
     with open(data_config.source_vocab, mode='rb') as io:
         src_vocab = pickle.load(io)
-    ko_stemmer = Stemmer(language='ko')
-    src_processor = SourceProcessor(src_vocab, ko_stemmer.extract_stem)
+    src_stemmer = Stemmer(language='ko')
+    src_processor = SourceProcessor(src_vocab, src_stemmer.extract_stem)
 
     with open(data_config.target_vocab, mode='rb') as io:
         tgt_vocab = pickle.load(io)
-    en_stemmer = Stemmer(language='en')
-    tgt_processor = TargetProcessor(tgt_vocab, en_stemmer.extract_stem)
+    tgt_stemmer = Stemmer(language='en')
+    tgt_processor = TargetProcessor(tgt_vocab, tgt_stemmer.extract_stem)
 
     # model
     encoder = Encoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)
@@ -82,14 +80,14 @@ if __name__ == '__main__':
             enc_outputs_mb, src_length_mb, enc_hc_mb = encoder(src_mb)
 
             # decoder
-            use_teacher_forcing = True if random.random() > model_config.teacher_forcing_ratio else False
-
             dec_input_mb = torch.ones((tgt_mb.size()[0], 1), device=device).long()
             dec_input_mb *= tgt_vocab.to_indices(tgt_vocab.bos_token)
             dec_hc_mb = enc_hc_mb
 
             tgt_length_mb = tgt_mb.ne(tgt_vocab.to_indices(tgt_vocab.padding_token)).sum(dim=1)
             tgt_mask_mb = sequence_mask(tgt_length_mb, tgt_length_mb.max())
+
+            use_teacher_forcing = True if random.random() > model_config.teacher_forcing_ratio else False
 
             if use_teacher_forcing:
                 for t in range(tgt_length_mb.max()):
