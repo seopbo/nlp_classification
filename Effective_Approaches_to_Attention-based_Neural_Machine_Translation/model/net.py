@@ -21,7 +21,7 @@ class Encoder(nn.Module):
                               permuting=False, tracking=True)
         self._linker = Linker(permuting=False)
         self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            encoder_hidden_dim, batch_first=True, num_layers=3, dropout=drop_ratio)
+                            encoder_hidden_dim, batch_first=True, num_layers=2, dropout=drop_ratio)
 
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         embed, source_length = self._emb(x)
@@ -47,11 +47,12 @@ class AttnDecoder(nn.Module):
         super(AttnDecoder, self).__init__()
         self._emb = Embedding(vocab=vocab, padding_idx=vocab.to_indices(vocab.padding_token),
                               freeze=False, permuting=False, tracking=False)
-        self._ops = nn.LSTM(self._emb._ops.embedding_dim,
-                            decoder_hidden_dim, batch_first=True, num_layers=3, dropout=drop_ratio)
+        self._ops = nn.LSTM(self._emb._ops.embedding_dim, decoder_hidden_dim, batch_first=True,
+                            num_layers=2, dropout=drop_ratio)
         self._attn = GlobalAttn(method=method, encoder_hidden_dim=encoder_hidden_dim,
                                 decoder_hidden_dim=decoder_hidden_dim)
         self._concat = nn.Linear(encoder_hidden_dim + decoder_hidden_dim, self._emb._ops.embedding_dim, bias=False)
+        # self._classify = nn.Linear(self._emb._ops.embedding_dim, len(vocab))
 
     def forward(self, x, hc, encoder_outputs, source_length):
         embed = self._emb(x)
@@ -59,5 +60,6 @@ class AttnDecoder(nn.Module):
         context = self._attn(ops_output, encoder_outputs, source_length)
         ops_output = ops_output.squeeze()
         output = torch.tanh(self._concat(torch.cat([ops_output, context], dim=-1)))
+        # decoder_output = self._classify(output)
         decoder_output = output @ self._emb._ops.weight.t()
         return decoder_output, hc

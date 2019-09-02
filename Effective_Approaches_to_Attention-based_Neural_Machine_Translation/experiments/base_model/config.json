@@ -3,7 +3,7 @@
   "encoder_hidden_dim": 256,
   "decoder_hidden_dim": 256,
   "drop_ratio": 0.2,
-  "epochs": 50,
+  "epochs": 100,
   "batch_size": 256,
   "learning_rate": 1e-3,
   "teacher_forcing_ratio": 0.1,
