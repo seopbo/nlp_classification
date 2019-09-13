@@ -5,14 +5,14 @@ The papers were implemented in using korean corpus
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128, except KoBERT (epoch: 2, mini_batch: 32))
 
-|                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) |
-| :--------------- | :-------: | :------------: | :------: |
-| SenCNN           |  92.87%  |     86.87%     |  86.38%  |
-| CharCNN          | 85.63% | 81.58% | 81.58% |
-| ConvRec          | 86.80% | 82.66% | 82.29% |
-| VDCNN            | 86.31% | 83.87% | 83.90% |
-| SAN | 93.90% | 86.52% | 86.35% |
-| KoBERT | 94.47% | 89.85% | 89.60% |
+|                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) | date |
+| :--------------- | :-------: | :------------: | :------: | :--------------: |
+| SenCNN           |  91.92%  |     86.82%     |  86.08%  | 190913 |
+| CharCNN          | 85.63% | 81.58% | 81.58% |  |
+| ConvRec          | 86.80% | 82.66% | 82.29% |  |
+| VDCNN            | 86.31% | 83.87% | 83.90% |  |
+| SAN | 93.90% | 86.52% | 86.35% |  |
+| KoBERT | 94.47% | 89.85% | 89.60% |  |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
