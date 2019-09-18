@@ -1,6 +1,6 @@
 {
   "num_classes":  2,
-  "embedding_dim":  16,
+  "embedding_dim":  32,
   "length":  300,
   "epochs": 5,
   "batch_size": 128,
