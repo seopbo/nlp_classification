@@ -66,7 +66,7 @@ class Vocab:
 
     def _build(self, list_of_tokens):
         token_to_idx = {tkn: idx for idx, tkn in enumerate(list_of_tokens)}
-        idx_to_token = {idx: tkn for idx, tkn in enumerate(list_of_tokens)}
+        idx_to_token = list_of_tokens
         return token_to_idx, idx_to_token
 
     def __len__(self):
@@ -110,7 +110,6 @@ class Tokenizer:
     def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
                  pad_fn: Callable[[List[int]], List[int]] = None) -> None:
         """Instantiating Tokenizer class
-
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
             split_fn (Callable): a function that can act as a splitter
