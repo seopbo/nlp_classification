@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.rnn import pad_packed_sequence, pack_padded_sequence, PackedSequence
-from gluonnlp import Vocab
+from model.utils import Vocab
 from typing import Tuple, Union
 
 
@@ -13,7 +13,7 @@ class Embedding(nn.Module):
         """Instantiating Embedding class
 
         Args:
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
             padding_idx (int): denote padding_idx to padding token
             freeze (bool): freezing weights. Default: False
             permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
@@ -23,7 +23,7 @@ class Embedding(nn.Module):
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking
-        self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()),
+        self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding),
                                                  freeze=freeze, padding_idx=self._padding_idx)
 
     def forward(self, x: torch.Tensor) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:

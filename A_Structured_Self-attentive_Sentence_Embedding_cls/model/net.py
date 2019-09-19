@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from model.ops import Embedding, Linker, BiLSTM, SelfAttention
-from gluonnlp import Vocab
+from model.utils import Vocab
 from typing import Tuple
 
 
@@ -17,7 +17,7 @@ class SAN(nn.Module):
             da (int): the number of features in hidden layer from self-attention
             r (int): the number of aspects of self-attention
             hidden_dim (int): the number of features in hidden layer from mlp
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
         """
         super(SAN, self).__init__()
         self._embedding = Embedding(vocab, padding_idx=vocab.to_indices(vocab.padding_token),

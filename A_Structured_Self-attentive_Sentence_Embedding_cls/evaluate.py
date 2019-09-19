@@ -1,80 +1,57 @@
-import pickle
-import json
-import fire
+import argparse
 import torch
+import torch.nn as nn
 import pickle
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.utils import batchify
-from model.data import Corpus, Tokenizer
-from model.net import SAN
 from mecab import MeCab
-from tqdm import tqdm
+from model.data import Corpus, batchify
+from model.net import SAN
+from model.utils import Tokenizer
+from model.metric import evaluate, acc
+from utils import Config, CheckpointManager, SummaryManager
 
 
-def get_accuracy(model, data_loader, device):
-    if model.training:
-        model.eval()
-
-    correct_count = 0
-
-    for mb in tqdm(data_loader, desc='steps'):
-        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
-
-        with torch.no_grad():
-            score, _ = model(x_mb)
-            y_mb_hat = torch.max(score, 1)[1]
-            correct_count += (y_mb_hat == y_mb).sum().item()
-    else:
-        acc = correct_count / len(data_loader.dataset)
-    return acc
+parser = argparse.ArgumentParser()
+parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
+parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
+parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
+                     containing weights to load")
+parser.add_argument('--data_name', default='test', help="name of the data in --data_dir to be evaluate")
 
 
-def main(json_path):
-    cwd = Path.cwd()
-    with open(cwd / json_path) as io:
-        params = json.loads(io.read())
+if __name__ == '__main__':
+    args = parser.parse_args()
+    data_dir = Path(args.data_dir)
+    model_dir = Path(args.model_dir)
+    data_config = Config(json_path=data_dir / 'config.json')
+    model_config = Config(json_path=model_dir / 'config.json')
 
     # tokenizer
-    vocab_path = params['filepath'].get('vocab')
-    with open(cwd / vocab_path, mode='rb') as io:
+    with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
     tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs)
 
     # model (restore)
-    save_path = cwd / params['filepath'].get('ckpt')
-    ckpt = torch.load(save_path)
-    num_classes = params['model'].get('num_classes')
-    lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
-    da = params['model'].get('da')
-    r = params['model'].get('r')
-    hidden_dim = params['model'].get('hidden_dim')
-    model = SAN(num_classes=num_classes, lstm_hidden_dim=lstm_hidden_dim,
-                da=da, r=r, hidden_dim=hidden_dim, vocab=tokenizer.vocab)
-    model.load_state_dict(ckpt['model_state_dict'])
+    checkpoint_manager = CheckpointManager(model_dir)
+    checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + '.tar')
+    model = SAN(num_classes=model_config.num_classes, lstm_hidden_dim=model_config.lstm_hidden_dim,
+                da=model_config.da, r=model_config.r, hidden_dim=model_config.hidden_dim, vocab=tokenizer.vocab)
+    model.load_state_dict(checkpoint['model_state_dict'])
 
     # evaluation
-    batch_size = params['training'].get('batch_size')
-    tr_filepath = cwd / params['filepath'].get('tr')
-    val_filepath = cwd / params['filepath'].get('val')
-    tst_filepath = cwd / params['filepath'].get('tst')
-
-    tr_ds = Corpus(tr_filepath, tokenizer.split_and_transform)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-    val_ds = Corpus(val_filepath, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-    tst_ds = Corpus(tst_filepath, tokenizer.split_and_transform)
-    tst_dl = DataLoader(tst_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
+    summary_manager = SummaryManager(model_dir)
+    filepath = getattr(data_config, args.data_name)
+    ds = Corpus(filepath, tokenizer.split_and_transform)
+    dl = DataLoader(ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify)
 
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    tr_acc = get_accuracy(model, tr_dl, device)
-    val_acc = get_accuracy(model, val_dl, device)
-    tst_acc = get_accuracy(model, tst_dl, device)
+    summary = evaluate(model, dl, {'loss': nn.CrossEntropyLoss(), 'acc': acc}, device)
 
-    print('tr_acc: {:.2%}, val_acc: {:.2%}, tst_acc: {:.2%}'.format(tr_acc, val_acc, tst_acc))
+    summary_manager.load('summary.json')
+    summary_manager.update({'{}'.format(args.data_name): summary})
+    summary_manager.save('summary.json')
 
-
-if __name__ == '__main__':
-    fire.Fire(main)
+    print('loss: {:.3f}, acc: {:.2%}'.format(summary['loss'], summary['acc']))
