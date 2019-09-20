@@ -17,7 +17,7 @@ parser.add_argument('--data_dir', default='data', help="Directory containing con
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
 parser.add_argument('--restore_file', default='best', help="name of the file in --model_dir \
                      containing weights to load")
-parser.add_argument('--data_name', default='tst', help="name of the data in --data_dir to be evaluate")
+parser.add_argument('--data_name', default='test', help="name of the data in --data_dir to be evaluate")
 
 
 if __name__ == '__main__':

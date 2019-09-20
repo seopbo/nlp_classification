@@ -7,7 +7,6 @@ class Vocab:
                  bos_token: str = '<bos>', eos_token: str = '<eos>', reserved_tokens: List[str] = None,
                  unknown_token_idx: int = 0):
         """Instantiating Vocab class
-
         Args:
             list_of_tokens (List[str]): list of tokens is source of vocabulary. each token is not duplicate
             padding_token (str): the representation for padding token
@@ -41,10 +40,8 @@ class Vocab:
 
     def to_indices(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
         """Looks up indices of text tokens according to the vocabulary
-
         Args:
             tokens (Union[str, List[str]]): a source token or tokens to be converted
-
         Returns:
             Union[int, List[int]]: a token index or a list of token indices according to the vocabulary
         """
@@ -57,10 +54,8 @@ class Vocab:
 
     def to_tokens(self, indices: Union[int, List[int]]) -> Union[str, List[str]]:
         """Converts token indices to tokens according to the vocabulary
-
         Args:
             indices (Union[int, List[int]]): a source token index or token indices to be converted
-
         Returns:
             Union[str, List[str]]: a token or a list of tokens according to the vocabulary
         """
@@ -71,7 +66,7 @@ class Vocab:
 
     def _build(self, list_of_tokens):
         token_to_idx = {tkn: idx for idx, tkn in enumerate(list_of_tokens)}
-        idx_to_token = {idx: tkn for idx, tkn in enumerate(list_of_tokens)}
+        idx_to_token = list_of_tokens
         return token_to_idx, idx_to_token
 
     def __len__(self):
@@ -115,7 +110,6 @@ class Tokenizer:
     def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
                  pad_fn: Callable[[List[int]], List[int]] = None) -> None:
         """Instantiating Tokenizer class
-
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
             split_fn (Callable): a function that can act as a splitter
@@ -137,8 +131,6 @@ class Tokenizer:
     def split_and_transform(self, string: str) -> List[int]:
         return self.transform(self.split(string))
 
-
-
     @property
     def vocab(self):
         return self._vocab
@@ -148,7 +140,6 @@ class PadSequence:
     """PadSequence class"""
     def __init__(self, length: int, pad_val: int = 0, clip: bool = True) -> None:
         """Instantiating PadSequence class
-
         Args:
             length (int): the maximum length to pad/clip the sequence
             pad_val (int): the pad value

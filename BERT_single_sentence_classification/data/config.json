@@ -1,5 +1,5 @@
 {
-  "tr": "data/train.txt",
-  "val": "data/val.txt",
-  "tst": "data/test.txt"
+    "train": "data/train.txt",
+    "validation": "data/validation.txt",
+    "test": "data/test.txt"
 }
