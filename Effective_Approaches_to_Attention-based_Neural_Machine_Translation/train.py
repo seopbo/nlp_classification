@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 from torch.utils.tensorboard import SummaryWriter
 from model.split import Stemmer
-from model.net import Encoder, AttnDecoder
+from model.net import BidiEncoder, AttnDecoder
 from model.data import NMTCorpus, batchify
 from model.utils import SourceProcessor, TargetProcessor
 from model.metric import mask_nll_loss, sequence_mask, evaluate
@@ -40,8 +40,8 @@ if __name__ == '__main__':
     tgt_processor = TargetProcessor(tgt_vocab, tgt_stemmer.extract_stem)
 
     # model
-    encoder = Encoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)
-    decoder = AttnDecoder(tgt_vocab, model_config.method, model_config.encoder_hidden_dim,
+    encoder = BidiEncoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)
+    decoder = AttnDecoder(tgt_vocab, model_config.method, model_config.encoder_hidden_dim * 2,
                           model_config.decoder_hidden_dim, model_config.drop_ratio)
 
     # training
@@ -51,7 +51,6 @@ if __name__ == '__main__':
     val_ds = NMTCorpus(data_config.dev, src_processor.process, tgt_processor.process)
     val_dl = DataLoader(val_ds, model_config.batch_size, shuffle=False, num_workers=4, collate_fn=batchify,
                         drop_last=False)
-
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     encoder.to(device)
     decoder.to(device)
@@ -62,9 +61,8 @@ if __name__ == '__main__':
     best_val_loss = 1e+10
 
     opt = optim.RMSprop([{'params': encoder.parameters()},
-                         {'params': decoder.parameters()}], lr=model_config.learning_rate, weight_decay=5e-4)
+                         {'params': decoder.parameters()}], lr=model_config.learning_rate)
     scheduler = CosineAnnealingWarmRestarts(opt, T_0=1)
-    # scheduler = CyclicLR(opt, base_lr=1e-4, max_lr=model_config.learning_rate, step_size_up=2000)
 
     for epoch in tqdm(range(model_config.epochs), desc='epochs'):
         tr_loss = 0
@@ -83,8 +81,8 @@ if __name__ == '__main__':
             # decoder
             dec_input_mb = torch.ones((tgt_mb.size()[0], 1), device=device).long()
             dec_input_mb *= tgt_vocab.to_indices(tgt_vocab.bos_token)
-            dec_hc_mb = enc_hc_mb
-
+            # dec_hc_mb = enc_hc_mb
+            dec_hc_mb = None
             tgt_length_mb = tgt_mb.ne(tgt_vocab.to_indices(tgt_vocab.padding_token)).sum(dim=1)
             tgt_mask_mb = sequence_mask(tgt_length_mb, tgt_length_mb.max())
 
@@ -112,7 +110,6 @@ if __name__ == '__main__':
             nn.utils.clip_grad_norm_(encoder.parameters(), model_config.clip_norm)
             nn.utils.clip_grad_norm_(decoder.parameters(), model_config.clip_norm)
             opt.step()
-
 
             tr_loss += mb_loss.item()
 

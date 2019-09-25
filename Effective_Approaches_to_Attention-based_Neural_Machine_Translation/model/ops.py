@@ -52,17 +52,17 @@ class Linker(nn.Module):
 
 
 class GlobalAttn(nn.Module):
-    def __init__(self, method, encoder_hidden_dim, decoder_hidden_dim):
+    def __init__(self, method, encoder_output_dim, decoder_hidden_dim):
         super(GlobalAttn, self).__init__()
         self._method = method
-        self._encoder_hidden_dim = encoder_hidden_dim
+        self._encoder_output_dim = encoder_output_dim
         self._decoder_hidden_dim = decoder_hidden_dim
 
         if self._method == 'general':
-            self._wa = nn.Parameter(torch.Tensor(encoder_hidden_dim, decoder_hidden_dim))
+            self._wa = nn.Parameter(torch.Tensor(encoder_output_dim, decoder_hidden_dim))
             nn.init.xavier_normal_(self._wa)
         elif self._method == 'concat':
-            self._wa = nn.Parameter(torch.Tensor(encoder_hidden_dim + decoder_hidden_dim, 1))
+            self._wa = nn.Parameter(torch.Tensor(encoder_output_dim + decoder_hidden_dim, 1))
             nn.init.xavier_normal_(self._wa)
 
         self._attn = {'dot': self._dot_score,

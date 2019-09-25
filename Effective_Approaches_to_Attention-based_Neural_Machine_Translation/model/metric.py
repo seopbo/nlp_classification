@@ -37,7 +37,8 @@ def evaluate(encoder, decoder, tgt_vocab, data_loader, device):
             # decoder
             dec_input_mb = torch.ones((tgt_mb.size()[0], 1), device=device).long()
             dec_input_mb *= tgt_vocab.to_indices(tgt_vocab.bos_token)
-            dec_hc_mb = enc_hc_mb
+            # dec_hc_mb = enc_hc_mb
+            dec_hc_mb = None
             tgt_length_mb = tgt_mb.ne(tgt_vocab.to_indices(tgt_vocab.padding_token)).sum(dim=1)
             tgt_mask_mb = sequence_mask(tgt_length_mb, tgt_length_mb.max())
 

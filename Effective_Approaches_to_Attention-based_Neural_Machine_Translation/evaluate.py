@@ -7,7 +7,7 @@ from pathlib import Path
 from tqdm import tqdm
 from torch.utils.data import DataLoader
 from model.split import Stemmer
-from model.net import Encoder, AttnDecoder
+from model.net import BidiEncoder, AttnDecoder
 from model.data import NMTCorpus, batchify
 from model.utils import SourceProcessor, TargetProcessor
 from model.metric import mask_nll_loss, sequence_mask, evaluate
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     tgt_processor = TargetProcessor(tgt_vocab, en_stemmer.extract_stem)
 
     # model (restore)
-    encoder = Encoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)
+    encoder = BidiEncoder(src_vocab, model_config.encoder_hidden_dim, model_config.drop_ratio)
     decoder = AttnDecoder(tgt_vocab, model_config.method, model_config.encoder_hidden_dim,
                           model_config.decoder_hidden_dim, model_config.drop_ratio)
 
