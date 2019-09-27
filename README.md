@@ -5,7 +5,7 @@ The papers were implemented in using korean corpus
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128, except KoBERT (epoch: 2, mini_batch: 32))
 
-|                  | Train ACC (120,000) | Validation ACC (30,000) | Test ACC (50,000) | date |
+| Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
 | SenCNN           |  91.98%  |     86.76%     |  86.14%  | 190918 |
 | CharCNN          | 86.54% | 82.25% | 81.89% | 190918 |
@@ -31,13 +31,13 @@ The papers were implemented in using korean corpus
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
 
-|                  | Train ACC (6,060) | Validation ACC (1,516) |
-| :--------------- | :-------: | :------------: |
-| SAN           |  91.93%  |     81.46%     |
-| KoBERT | 90.80% | 93.33% |
+| Model \ Accuracy | Train (6,060) | Validation (1,516) | Date |
+| :--------------- | :-------: | :------------: | -------------- |
+| SAN           |  91.93%  |     81.46%     |          |
+| KoBERT | 90.80% | 93.33% |  |
 
 
-* [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_sts) (as SAN)
+* [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
   + https://arxiv.org/abs/1703.03130
 * [ ] Siamese recurrent architectures for learning sentence similarity 
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
@@ -52,6 +52,7 @@ The papers were implemented in using korean corpus
 
 
 ### Named entity recognition
+
 + Using the [Naver nlp-challange corpus for NER](https://github.com/naver/nlp-challenge/tree/master/missions/ner)
 + Hyper-parameter was arbitrarily selected.
 * [x] [Bidirectional LSTM-CRF Models for Sequence Tagging](https://github.com/aisolab/nlp_implementation/tree/master/Bidirectional_LSTM-CRF_Models_for_Sequence_Tagging)
@@ -65,9 +66,15 @@ The papers were implemented in using korean corpus
 
 
 ### Neural machine translation
-* [ ] Effective Approaches to Attention-based Neural Machine Translation
+
+| Model \ Perplexity | Train () | Validation  () | Test () | Date |
+| ------------------ | -------- | -------------- | ------- | ---- |
+| LuongAttn          |          |                |         |      |
+| Transformer        |          |                |         |      |
+
+* [x] Effective Approaches to Attention-based Neural Machine Translation (as LuongAttn)
 	+ https://arxiv.org/abs/1608.07905
-* [ ] Attention Is All You Need
+* [ ] Attention Is All You Need (as Transformer)
 	+ https://arxiv.org/abs/1706.03762
 
 
