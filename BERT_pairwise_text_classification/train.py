@@ -42,10 +42,10 @@ if __name__ == '__main__':
     model.load_state_dict(bert_pretrained, strict=False)
 
     # training
-    tr_ds = Corpus(data_config.tr, preprocessor.preprocess)
+    tr_ds = Corpus(data_config.train, preprocessor.preprocess)
     tr_dl = DataLoader(tr_ds, batch_size=model_config.batch_size, shuffle=True, num_workers=4, drop_last=True)
-    val_ds = Corpus(data_config.val, preprocessor.preprocess)
-    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
+    val_ds = Corpus(data_config.validation, preprocessor.preprocess)
+    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size, num_workers=4)
 
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(
