@@ -9,9 +9,9 @@ from torch.utils.data import DataLoader
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
-from mecab import MeCab
 from model.net import SenCNN
 from model.data import Corpus
+from model.split import split_morphs
 from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
     pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
-    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs, pad_fn=pad_sequence)
+    tokenizer = Tokenizer(vocab=vocab, split_fn=split_morphs, pad_fn=pad_sequence)
 
     # model
     model = SenCNN(num_classes=model_config.num_classes, vocab=tokenizer.vocab)
