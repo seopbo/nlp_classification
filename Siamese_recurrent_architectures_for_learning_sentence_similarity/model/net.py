@@ -1,26 +1,35 @@
+import torch
 import torch.nn as nn
-from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
+from model.ops import Embedding, Linker, LSTMEncoder
+from model.utils import Vocab
+from typing import Tuple
 
 
-class PairwiseClassifier(BertPreTrainedModel):
-    def __init__(self, config, num_classes, vocab) -> None:
-        super(PairwiseClassifier, self).__init__(config)
-        self.bert = BertModel(config)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
-        self.classifier = nn.Linear(config.hidden_size, num_classes)
-        self.vocab = vocab
-        self.apply(self.init_weights)
+class MaLSTM(nn.Module):
+    """MaLSTM class"""
 
-    def forward(self, input_ids, token_type_ids):
-        # pooled_output is not same hidden vector corresponds to first token from last encoded layers
-        attention_mask = input_ids.ne(
-            self.vocab.to_indices(self.vocab.padding_token)
-        ).float()
-        _, pooled_output = self.bert(
-            input_ids=input_ids,
-            token_type_ids=token_type_ids,
-            attention_mask=attention_mask,
+    def __init__(self, num_classes: int, hidden_dim: int, vocab: Vocab) -> None:
+        """Instantiating MaLSTM class
+
+        Args:
+            num_classes (int): the number of classes
+            hidden_dim (int): the number of features of the hidden states from LSTM
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
+        """
+        super(MaLSTM, self).__init__()
+        self._emb = Embedding(
+            vocab, padding_idx=1, freeze=False, permuting=False, tracking=True
         )
-        pooled_output = self.dropout(pooled_output)
-        logits = self.classifier(pooled_output)
-        return logits
+        self._pipe = Linker(permuting=False)
+        self._encoder = LSTMEncoder(
+            self._emb._ops.embedding_dim, hidden_dim, using_sequence=False
+        )
+        self._classifier = nn.Linear(in_features=hidden_dim, out_features=num_classes)
+
+    def forward(self, x: Tuple[torch.tensor, torch.tensor]) -> torch.Tensor:
+        qa, qb = x
+        fmap_qa = self._encoder(self._pipe(self._emb(qa)))
+        fmap_qb = self._encoder(self._pipe(self._emb(qb)))
+        fmap = torch.exp(-torch.abs(fmap_qa - fmap_qb))
+        score = self._classifier(fmap)
+        return score

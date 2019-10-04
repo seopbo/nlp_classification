@@ -5,9 +5,10 @@ import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.net import PairwiseClassifier
-from model.data import Corpus
-from model.utils import PreProcessor, PadSequence
+from model.net import MaLSTM
+from model.data import Corpus, batchify
+from model.utils import Tokenizer
+from model.split import split_morphs
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
@@ -33,46 +34,34 @@ if __name__ == "__main__":
     model_config = Config(json_path=model_dir / "config.json")
 
     # tokenizer
-    ptr_tokenizer = BertTokenizer.from_pretrained(
-        "pretrained/vocab.korean.rawtext.list", do_lower_case=False
-    )
-    with open("pretrained/vocab.pkl", mode="rb") as io:
+    with open(data_config.vocab, mode="rb") as io:
         vocab = pickle.load(io)
-    pad_sequence = PadSequence(
-        length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token)
-    )
-    preprocessor = PreProcessor(
-        vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence
-    )
+    tokenizer = Tokenizer(vocab, split_morphs)
 
     # model
-    config = BertConfig("pretrained/bert_config.json")
-    model = PairwiseClassifier(
-        config, num_classes=model_config.num_classes, vocab=preprocessor.vocab
+    model = MaLSTM(
+        num_classes=model_config.num_classes,
+        hidden_dim=model_config.hidden_dim,
+        vocab=tokenizer.vocab,
     )
-    bert_pretrained = torch.load("pretrained/pytorch_model.bin")
-    model.load_state_dict(bert_pretrained, strict=False)
 
     # training
-    tr_ds = Corpus(data_config.tr, preprocessor.preprocess)
+    tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
     tr_dl = DataLoader(
         tr_ds,
         batch_size=model_config.batch_size,
         shuffle=True,
         num_workers=4,
         drop_last=True,
+        collate_fn=batchify,
     )
-    val_ds = Corpus(data_config.val, preprocessor.preprocess)
-    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
+    val_ds = Corpus(data_config.validation, tokenizer.split_and_transform)
+    val_dl = DataLoader(
+        val_ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
+    )
 
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(
-        [
-            {"params": model.bert.parameters(), "lr": model_config.learning_rate / 100},
-            {"params": model.classifier.parameters(), "lr": model_config.learning_rate},
-        ],
-        weight_decay=5e-4,
-    )
+    opt = optim.Adam(model.parameters(), lr=model_config.learning_rate)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
@@ -89,9 +78,9 @@ if __name__ == "__main__":
 
         model.train()
         for step, mb in tqdm(enumerate(tr_dl), desc="steps", total=len(tr_dl)):
-            x_mb, x_types_mb, y_mb = map(lambda elm: elm.to(device), mb)
+            qa_mb, qb_mb, y_mb = map(lambda elm: elm.to(device), mb)
             opt.zero_grad()
-            y_hat_mb = model(x_mb, x_types_mb)
+            y_hat_mb = model((qa_mb, qb_mb))
             mb_loss = loss_fn(y_hat_mb, y_mb)
             mb_loss.backward()
             opt.step()
@@ -141,7 +130,7 @@ if __name__ == "__main__":
                     "model_state_dict": model.state_dict(),
                     "opt_state_dict": opt.state_dict(),
                 }
-                summary = {"tr": tr_summary, "val": val_summary}
+                summary = {"train": tr_summary, "validation": val_summary}
 
                 summary_manager.update(summary)
                 summary_manager.save("summary.json")

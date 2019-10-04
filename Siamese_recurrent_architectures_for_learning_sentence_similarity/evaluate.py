@@ -4,11 +4,10 @@ import torch
 import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
-from pytorch_transformers.modeling_bert import BertConfig
-from pretrained.tokenization import BertTokenizer
-from model.net import PairwiseClassifier
-from model.data import Corpus
-from model.utils import PreProcessor, PadSequence
+from model.net import MaLSTM
+from model.data import Corpus, batchify
+from model.utils import Tokenizer
+from model.split import split_morphs
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 
@@ -28,7 +27,9 @@ parser.add_argument(
                      containing weights to load",
 )
 parser.add_argument(
-    "--data_name", default="tst", help="name of the data in --data_dir to be evaluate"
+    "--data_name",
+    default="validation",
+    help="name of the data in --data_dir to be evaluate",
 )
 
 
@@ -40,31 +41,26 @@ if __name__ == "__main__":
     model_config = Config(json_path=model_dir / "config.json")
 
     # tokenizer
-    ptr_tokenizer = BertTokenizer.from_pretrained(
-        "pretrained/vocab.korean.rawtext.list", do_lower_case=False
-    )
-    with open("pretrained/vocab.pkl", mode="rb") as io:
+    with open(data_config.vocab, mode="rb") as io:
         vocab = pickle.load(io)
-    pad_sequence = PadSequence(
-        length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token)
-    )
-    preprocessor = PreProcessor(
-        vocab=vocab, split_fn=ptr_tokenizer.tokenize, pad_fn=pad_sequence
-    )
+    tokenizer = Tokenizer(vocab, split_morphs)
 
     # model (restore)
     checkpoint_manager = CheckpointManager(model_dir)
     checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + ".tar")
-    config = BertConfig("pretrained/bert_config.json")
-    model = PairwiseClassifier(
-        config, num_classes=model_config.num_classes, vocab=preprocessor.vocab
+    model = MaLSTM(
+        num_classes=model_config.num_classes,
+        hidden_dim=model_config.hidden_dim,
+        vocab=tokenizer.vocab,
     )
     model.load_state_dict(checkpoint["model_state_dict"])
 
     # evaluation
     filepath = getattr(data_config, args.data_name)
-    ds = Corpus(filepath, preprocessor.preprocess)
-    dl = DataLoader(ds, batch_size=model_config.batch_size, num_workers=4)
+    ds = Corpus(filepath, tokenizer.split_and_transform)
+    dl = DataLoader(
+        ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
+    )
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
