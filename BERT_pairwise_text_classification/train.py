@@ -109,7 +109,7 @@ if __name__ == '__main__':
                 state = {'epoch': epoch + 1,
                          'model_state_dict': model.state_dict(),
                          'opt_state_dict': opt.state_dict()}
-                summary = {'tr': tr_summary, 'val': val_summary}
+                summary = {'train': tr_summary, 'validation': val_summary}
 
                 summary_manager.update(summary)
                 summary_manager.save('summary.json')
