@@ -1,77 +1,74 @@
-import json
-import fire
-import torch
+import argparse
 import pickle
-import itertools
+import torch
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.utils import batchify, split_to_self
-from model.data import Corpus, Tokenizer
 from model.net import BilstmCRF
-from tqdm import tqdm
-from sklearn.metrics import f1_score
+from model.data import Corpus, batchify
+from model.utils import Tokenizer
+from model.split import split_to_self
+from model.metric import get_f1_score
+from utils import Config, CheckpointManager, SummaryManager
 
 
-def get_f1_score(model, data_loader, device):
-    if model.training:
-        model.eval()
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--data_dir", default="data", help="Directory containing config.json of data"
+)
+parser.add_argument(
+    "--model_dir",
+    default="experiments/base_model",
+    help="Directory containing config.json of model",
+)
+parser.add_argument(
+    "--restore_file",
+    default="best",
+    help="name of the file in --model_dir \
+                     containing weights to load",
+)
+parser.add_argument(
+    "--data_name", default="test", help="name of the data in --data_dir to be evaluate"
+)
 
-    true_entities = []
-    pred_entities = []
 
-    for mb in tqdm(data_loader, desc='steps'):
-        x_mb, y_mb, _ = map(lambda elm: elm.to(device), mb)
-        y_mb = y_mb.cpu()
-
-        with torch.no_grad():
-            _, yhat = model(x_mb)
-            pred_entities.extend(list(itertools.chain.from_iterable(yhat)))
-            true_entities.extend(y_mb.masked_select(y_mb.ne(0)).numpy().tolist())
-    else:
-        score = f1_score(true_entities, pred_entities, average='weighted')
-    return score
-
-
-def main(json_path):
-    cwd = Path.cwd()
-    with open(cwd / json_path) as io:
-        params = json.loads(io.read())
+if __name__ == "__main__":
+    args = parser.parse_args()
+    data_dir = Path(args.data_dir)
+    model_dir = Path(args.model_dir)
+    data_config = Config(json_path=data_dir / "config.json")
+    model_config = Config(json_path=model_dir / "config.json")
 
     # tokenizer
-    token_vocab_path = params['filepath'].get('token_vocab')
-    label_vocab_path = params['filepath'].get('label_vocab')
-    with open(token_vocab_path, mode='rb') as io:
+    with open(data_config.token_vocab, mode="rb") as io:
         token_vocab = pickle.load(io)
-    with open(label_vocab_path, mode='rb') as io:
+    with open(data_config.label_vocab, mode="rb") as io:
         label_vocab = pickle.load(io)
     token_tokenizer = Tokenizer(token_vocab, split_to_self)
     label_tokenizer = Tokenizer(label_vocab, split_to_self)
 
     # model (restore)
-    save_path = cwd / params['filepath'].get('ckpt')
-    ckpt = torch.load(save_path)
-    lstm_hidden_dim = params['model'].get('lstm_hidden_dim')
-    model = BilstmCRF(label_vocab, token_vocab, lstm_hidden_dim)
-    model.load_state_dict(ckpt['model_state_dict'])
+    checkpoint_manager = CheckpointManager(model_dir)
+    checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + ".tar")
+    model = BilstmCRF(label_vocab, token_vocab, model_config.lstm_hidden_dim)
+    model.load_state_dict(checkpoint["model_state_dict"])
 
     # evaluation
-    batch_size = params['training'].get('batch_size')
-    tr_path = cwd / params['filepath'].get('tr')
-    val_path = cwd / params['filepath'].get('val')
-
-    tr_ds = Corpus(tr_path, token_tokenizer.split_and_transform, label_tokenizer.split_and_transform)
-    tr_dl = DataLoader(tr_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-    val_ds = Corpus(val_path, token_tokenizer.split_and_transform, label_tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=batchify)
-
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    summary_manager = SummaryManager(model_dir)
+    filepath = getattr(data_config, args.data_name)
+    ds = Corpus(
+        filepath,
+        token_tokenizer.split_and_transform,
+        label_tokenizer.split_and_transform,
+    )
+    dl = DataLoader(
+        ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
+    )
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
 
-    tr_f1_score = get_f1_score(model, tr_dl, device)
-    val_f1_score = get_f1_score(model, val_dl, device)
+    f1_score = get_f1_score(model, dl, device)
+    summary_manager.load("summary.json")
+    summary_manager._summary[args.data_name].update({"f1": f1_score})
+    summary_manager.save("summary.json")
 
-    print('tr_f1_score: {:.2%}, val_f1_score: {:.2%}'.format(tr_f1_score, val_f1_score))
-
-
-if __name__ == '__main__':
-    fire.Fire(main)
+    print("f1_score: {:.2%}".format(f1_score))
