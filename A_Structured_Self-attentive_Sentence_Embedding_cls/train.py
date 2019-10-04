@@ -8,8 +8,8 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
-from mecab import MeCab
 from model.net import SAN
+from model.split import split_morphs
 from model.data import Corpus, batchify
 from model.utils import Tokenizer
 from model.metric import evaluate, acc
@@ -37,7 +37,7 @@ if __name__ == '__main__':
     # tokenizer
     with open(data_config.vocab, mode='rb') as io:
         vocab = pickle.load(io)
-    tokenizer = Tokenizer(vocab=vocab, split_fn=MeCab().morphs)
+    tokenizer = Tokenizer(vocab=vocab, split_fn=split_morphs)
 
     # model
     model = SAN(num_classes=model_config.num_classes, lstm_hidden_dim=model_config.lstm_hidden_dim,
