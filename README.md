@@ -33,7 +33,7 @@ The papers were implemented in using korean corpus
 
 | Model \ Accuracy | Train (6,060) | Validation (1,516) | Date |
 | :--------------- | :-------: | :------------: | -------------- |
-| SAN           |  91.93%  |     81.46%     |          |
+| SAN           |  89.58%  |     82.71%     | 191004         |
 | Siam | 92.98% | 84.03% | 191004 |
 | KoBERT | 96.07% | 93.46% | 191004 |
 
