@@ -34,12 +34,13 @@ The papers were implemented in using korean corpus
 | Model \ Accuracy | Train (6,060) | Validation (1,516) | Date |
 | :--------------- | :-------: | :------------: | -------------- |
 | SAN           |  91.93%  |     81.46%     |          |
+| Siam | 92.98% | 84.03% | 191004 |
 | KoBERT | 90.80% | 93.33% |  |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
   + https://arxiv.org/abs/1703.03130
-* [ ] Siamese recurrent architectures for learning sentence similarity 
+* [x] [Siamese recurrent architectures for learning sentence similarity](https://github.com/aisolab/nlp_implementation/tree/master/Siamese_recurrent_architectures_for_learning_sentence_similarity) (as Siam)
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
 * [ ] Stochastic Answer Networks for Natural Language Inference
   + https://arxiv.org/abs/1804.07888
