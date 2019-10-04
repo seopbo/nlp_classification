@@ -8,7 +8,7 @@ list_of_tokens = list(ptr_tokenizer.vocab.keys())
 
 # generate vocab
 vocab = Vocab(list_of_tokens, padding_token='[PAD]', unknown_token='[UNK]', bos_token=None, eos_token=None,
-              reserved_tokens=['[CLS]', '[SEP]', '[MASK]'], unknown_token_idx=1)
+              reserved_tokens=['[CLS]', '[SEP]', '[MASK]'], token_to_idx={'[UNK]': 1})
 
 # save vocab
 with open('./pretrained/vocab.pkl', mode='wb') as io:
