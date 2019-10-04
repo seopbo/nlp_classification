@@ -8,12 +8,18 @@ from typing import Tuple, Union
 
 class Embedding(nn.Module):
     """Embedding class"""
-    def __init__(self, vocab: Vocab, padding_idx: int = 1, freeze: bool = True,
-                 permuting: bool = True, tracking: bool = True) -> None:
-        """Instantiating Embedding class
 
+    def __init__(
+        self,
+        vocab: Vocab,
+        padding_idx: int = 1,
+        freeze: bool = True,
+        permuting: bool = True,
+        tracking: bool = True,
+    ) -> None:
+        """Instantiating Embedding class
         Args:
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utilsVocab): the instance of model.utils.Vocab
             padding_idx (int): denote padding_idx to padding token
             freeze (bool): freezing weights. Default: False
             permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
@@ -23,10 +29,15 @@ class Embedding(nn.Module):
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking
-        self._ops = nn.Embedding.from_pretrained(torch.from_numpy(vocab.embedding.idx_to_vec.asnumpy()), freeze=freeze,
-                                                 padding_idx=self._padding_idx)
+        self._ops = nn.Embedding.from_pretrained(
+            torch.from_numpy(vocab.embedding),
+            freeze=freeze,
+            padding_idx=self._padding_idx,
+        )
 
-    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(
+        self, x: torch.Tensor
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
 
         if self._tracking:
@@ -38,6 +49,7 @@ class Embedding(nn.Module):
 
 class Linker(nn.Module):
     """Linker class"""
+
     def __init__(self, permuting: bool = True) -> None:
         """Instantiating Linker class
 
@@ -47,15 +59,22 @@ class Linker(nn.Module):
         super(Linker, self).__init__()
         self._permuting = permuting
 
-    def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]) -> Tuple[PackedSequence, torch.Tensor]:
+    def forward(
+        self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+    ) -> Tuple[PackedSequence, torch.Tensor]:
         fmap, fmap_length = x
         fmap = fmap.permute(0, 2, 1) if self._permuting else fmap
-        return pack_padded_sequence(fmap, fmap_length, batch_first=True, enforce_sorted=False)
+        return pack_padded_sequence(
+            fmap, fmap_length, batch_first=True, enforce_sorted=False
+        )
 
 
 class BiLSTM(nn.Module):
     """BiLSTM class"""
-    def __init__(self, input_size: int, hidden_size: int, using_sequence: bool = True) -> None:
+
+    def __init__(
+        self, input_size: int, hidden_size: int, using_sequence: bool = True
+    ) -> None:
         """Instantiating BiLSTM class
 
         Args:
@@ -65,7 +84,9 @@ class BiLSTM(nn.Module):
         """
         super(BiLSTM, self).__init__()
         self._using_sequence = using_sequence
-        self._ops = nn.LSTM(input_size, hidden_size, batch_first=True, bidirectional=True)
+        self._ops = nn.LSTM(
+            input_size, hidden_size, batch_first=True, bidirectional=True
+        )
 
     def forward(self, x: PackedSequence) -> torch.Tensor:
         outputs, hc = self._ops(x)
@@ -74,12 +95,13 @@ class BiLSTM(nn.Module):
             hiddens = pad_packed_sequence(outputs, batch_first=True)[0]
             return hiddens
         else:
-            feature = torch.cat([*hc[0]], dim=1)
+            feature = torch.cat([*hc[0]], dim=-1)
             return feature
 
 
 class SelfAttention(nn.Module):
     """SelfAttention class"""
+
     def __init__(self, input_dim: int, da: int, r: int) -> None:
         """Instantiating SelfAttention class
 
@@ -100,6 +122,7 @@ class SelfAttention(nn.Module):
 
 class SentenceEncoder(nn.Module):
     """SentenceEncoder class"""
+
     def __init__(self, lstm_hidden_dim: int, da: int, r: int, vocab: Vocab) -> None:
         """Instantiating SentenceEncoder class
 
@@ -107,16 +130,25 @@ class SentenceEncoder(nn.Module):
             lstm_hidden_dim (int): the number of features in the hidden states in bi-directional lstm
             da (int): the number of features in hidden layer from self-attention
             r (int): the number of aspects of self-attention
-            vocab (gluonnlp.Vocab): the instance of gluonnlp.Vocab
+            vocab (model.utils.Vocab): the instance of model.utils.Vocab
         """
         super(SentenceEncoder, self).__init__()
-        self._embedding = Embedding(vocab, padding_idx=vocab.to_indices(vocab.padding_token), freeze=False,
-                                    permuting=False, tracking=True)
+        self._embedding = Embedding(
+            vocab,
+            padding_idx=vocab.to_indices(vocab.padding_token),
+            freeze=False,
+            permuting=False,
+            tracking=True,
+        )
         self._pipe = Linker(permuting=False)
-        self._bilstm = BiLSTM(self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True)
+        self._bilstm = BiLSTM(
+            self._embedding._ops.embedding_dim, lstm_hidden_dim, using_sequence=True
+        )
         self._attention = SelfAttention(2 * lstm_hidden_dim, da, r)
 
-    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: Tuple[torch.Tensor, torch.Tensor]
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         fmap = self._embedding(x)
         fmap = self._pipe(fmap)
         hiddens = self._bilstm(fmap)

@@ -1,0 +1,5 @@
+{
+  "train": "data/train.txt",
+  "validation": "data/validation.txt",
+  "vocab" : "data/vocab.pkl"
+}
