@@ -53,10 +53,12 @@ The papers were implemented in using korean corpus
 
 
 ### Named entity recognition
-
+| Model \ f1 | Train (81,000) | Validation (9,000) | Date |
+| :--------------- | :-------: | :------------: | -------------- |
+| BiLSTM-CRF |  79.88%  |     76.45%     | 191004         |
 + Using the [Naver nlp-challange corpus for NER](https://github.com/naver/nlp-challenge/tree/master/missions/ner)
 + Hyper-parameter was arbitrarily selected.
-* [x] [Bidirectional LSTM-CRF Models for Sequence Tagging](https://github.com/aisolab/nlp_implementation/tree/master/Bidirectional_LSTM-CRF_Models_for_Sequence_Tagging)
+* [x] [Bidirectional LSTM-CRF Models for Sequence Tagging](https://github.com/aisolab/nlp_implementation/tree/master/Bidirectional_LSTM-CRF_Models_for_Sequence_Tagging) (BiLSTM-CRF)
 	+ https://arxiv.org/abs/1508.01991
 * [ ] End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF
 	+ https://arxiv.org/abs/1603.01354
