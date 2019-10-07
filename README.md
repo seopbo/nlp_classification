@@ -12,7 +12,7 @@ The papers were implemented in using korean corpus
 | ConvRec          | 87.33% | 83.64% | 83.34% | 191004 |
 | VDCNN            | 85.57% | 83.87% | 83.43% | 191004 |
 | SAN | 89.79% | 86.60% | 86.25% | 191004 |
-| KoBERT | 94.01% | 89.87% | 89.63% | 191004 |
+| ETRIBERT | 94.01% | 89.87% | 89.63% | 191004 |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -24,7 +24,7 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1606.01781
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_cls) (as SAN)
   + https://arxiv.org/abs/1703.03130
-* [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as KoBERT)
+* [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Paraphrase detection
@@ -35,7 +35,7 @@ The papers were implemented in using korean corpus
 | :--------------- | :-------: | :------------: | -------------- |
 | SAN           |  89.58%  |     82.71%     | 191004         |
 | Siam | 92.98% | 84.03% | 191004 |
-| KoBERT | 96.07% | 93.46% | 191004 |
+| ETRIBERT | 96.07% | 93.46% | 191004 |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
@@ -44,7 +44,7 @@ The papers were implemented in using korean corpus
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
 * [ ] Stochastic Answer Networks for Natural Language Inference
   + https://arxiv.org/abs/1804.07888
-* [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as KoBERT)
+* [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as ETRIBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Language model
