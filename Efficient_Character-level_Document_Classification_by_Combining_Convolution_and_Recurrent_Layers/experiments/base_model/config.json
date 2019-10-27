@@ -4,7 +4,7 @@
   "hidden_dim": 128,
   "min_length": 15,
   "epochs": 5,
-  "batch_size": 128,
+  "batch_size": 256,
   "learning_rate": 1e-3,
-  "summary_step": 1000
+  "summary_step": 500
 }
