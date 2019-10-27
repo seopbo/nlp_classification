@@ -15,6 +15,7 @@ class Vocab:
         token_to_idx: Dict[str, int] = None,
     ):
         """Instantiating Vocab class
+
         Args:
             list_of_tokens (List[str]): list of tokens is source of vocabulary. each token is not duplicate
             padding_token (str): the representation for padding token
@@ -65,6 +66,7 @@ class Vocab:
 
     def to_indices(self, tokens: Union[str, List[str]]) -> Union[int, List[int]]:
         """Looks up indices of text tokens according to the vocabulary
+
         Args:
             tokens (Union[str, List[str]]): a source token or tokens to be converted
         Returns:
@@ -86,6 +88,7 @@ class Vocab:
 
     def to_tokens(self, indices: Union[int, List[int]]) -> Union[str, List[str]]:
         """Converts token indices to tokens according to the vocabulary
+
         Args:
             indices (Union[int, List[int]]): a source token index or token indices to be converted
         Returns:
@@ -167,9 +170,15 @@ class Vocab:
 
 class Tokenizer:
     """Tokenizer class"""
-    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
-                 pad_fn: Callable[[List[int]], List[int]] = None) -> None:
+
+    def __init__(
+        self,
+        vocab: Vocab,
+        split_fn: Callable[[str], List[str]],
+        pad_fn: Callable[[List[int]], List[int]] = None,
+    ) -> None:
         """Instantiating Tokenizer class
+
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
             split_fn (Callable): a function that can act as a splitter
@@ -198,8 +207,10 @@ class Tokenizer:
 
 class PadSequence:
     """PadSequence class"""
+
     def __init__(self, length: int, pad_val: int = 0, clip: bool = True) -> None:
         """Instantiating PadSequence class
+
         Args:
             length (int): the maximum length to pad/clip the sequence
             pad_val (int): the pad value
@@ -213,7 +224,7 @@ class PadSequence:
         sample_length = len(sample)
         if sample_length >= self._length:
             if self._clip and sample_length > self._length:
-                return sample[:self._length]
+                return sample[: self._length]
             else:
                 return sample
         else:
