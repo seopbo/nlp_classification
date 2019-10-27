@@ -46,7 +46,7 @@ if __name__ == '__main__':
     tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=model_config.batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_ds = Corpus(data_config.validation, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
+    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size, num_workers=4)
 
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=model_config.learning_rate)
