@@ -3,16 +3,16 @@ The papers were implemented in using korean corpus
 
 ### Classification
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
-+ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 128, except KoBERT (epoch: 2, mini_batch: 32))
++ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 256, except ETRIBERT (epoch: 2, mini_batch: 32))
 
 | Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
-| SenCNN           |  91.97%  |     86.78%     |  86.00%  | 191004 |
-| CharCNN          | 85.72% | 82.11% | 81.74% | 191004 |
-| ConvRec          | 87.33% | 83.64% | 83.34% | 191004 |
-| VDCNN            | 85.57% | 83.87% | 83.43% | 191004 |
-| SAN | 89.79% | 86.60% | 86.25% | 191004 |
-| ETRIBERT | 94.01% | 89.87% | 89.63% | 191004 |
+| SenCNN           |  90.80%  |     86.48%     |  85.90%  | 191027 |
+| CharCNN          | 86.20% | 82.21% | 81.60% | 191027 |
+| ConvRec          | 86.48% | 82.81% | 82.45% | 191027 |
+| VDCNN            | 87.32% | 84.46% | 84.35% | 191027 |
+| SAN | 90.86% | 86.76% | 86.47% | 191027 |
+| ETRIBERT | 94.01% | 89.87% | 89.63% | 191027 |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
