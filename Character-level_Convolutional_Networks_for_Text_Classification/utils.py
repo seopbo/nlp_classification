@@ -9,6 +9,7 @@ class Config:
 
     def __init__(self, json_path_or_dict: Union[str, dict]) -> None:
         """Instantiating Config class
+
         Args:
             json_path_or_dict (Union[str, dict]): filepath of config or dictionary which has attributes
         """
@@ -21,6 +22,7 @@ class Config:
 
     def save(self, json_path: Union[str, Path]) -> None:
         """Saving config to json_path
+
         Args:
             json_path (Union[str, Path]): filepath of config
         """
@@ -29,6 +31,7 @@ class Config:
 
     def update(self, json_path_or_dict) -> None:
         """Updating Config instance
+
         Args:
             json_path_or_dict (Union[str, dict]): filepath of config or dictionary which has attributes
         """
@@ -49,6 +52,7 @@ class CheckpointManager:
 
     def __init__(self, model_dir: Union[str, Path]) -> None:
         """Instantiating CheckpointManager class
+
         Args:
             model_dir (Union[str, Path]): directory path for saving a checkpoint
         """
@@ -62,20 +66,25 @@ class CheckpointManager:
 
     def save_checkpoint(self, state: dict, filename: str) -> None:
         """Saving a checkpoint
+
         Args:
             state (dict): a checkpoint
             filename (str): the filename of a checkpoint
         """
         torch.save(state, self._model_dir / filename)
 
-    def load_checkpoint(self, filename) -> dict:
+    def load_checkpoint(self, filename: str, device: torch.device = None) -> dict:
         """Loading a checkpoint
+
         Args:
             filename (str): the filename of a checkpoint
+            device (torch.device): device where a checkpoint will be stored
+
         Returns:
             state (dict): a checkpoint
         """
-        state = torch.load(self._model_dir / filename)
+        device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+        state = torch.load(self._model_dir / filename, map_location=device)
         return state
 
 
@@ -93,6 +102,7 @@ class SummaryManager:
 
     def save(self, filename: str) -> None:
         """Saving a summary to model_dir
+
         Args:
             filename (str): the filename of a summary
         """
@@ -110,6 +120,7 @@ class SummaryManager:
 
     def update(self, summary: dict) -> None:
         """Updating a summary
+
         Args:
             summary (dict): a summary
         """

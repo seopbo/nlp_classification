@@ -73,16 +73,18 @@ class CheckpointManager:
         """
         torch.save(state, self._model_dir / filename)
 
-    def load_checkpoint(self, filename) -> dict:
+    def load_checkpoint(self, filename: str, device: torch.device = None) -> dict:
         """Loading a checkpoint
 
         Args:
             filename (str): the filename of a checkpoint
+            device (torch.device): device where a checkpoint will be stored
 
         Returns:
             state (dict): a checkpoint
         """
-        state = torch.load(self._model_dir / filename)
+        device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+        state = torch.load(self._model_dir / filename, map_location=device)
         return state
 
 
@@ -109,7 +111,6 @@ class SummaryManager:
 
     def load(self, filename) -> None:
         """Loading a summary from model_dir
-
         Args:
             filename (str): the filename of a summary
         """
