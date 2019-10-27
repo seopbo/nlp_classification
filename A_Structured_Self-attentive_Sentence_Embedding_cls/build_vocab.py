@@ -2,32 +2,43 @@ import itertools
 import pickle
 import gluonnlp as nlp
 import pandas as pd
+from pathlib import Path
 from model.utils import Vocab
 from model.split import split_morphs
 from utils import Config
 from collections import Counter
 
 # loading dataset
-data_config = Config('data/config.json')
-tr = pd.read_csv(data_config.train, sep='\t').loc[:, ['document', 'label']]
+data_dir = Path("data")
+config = Config(data_dir / "config.json")
+tr = pd.read_csv(config.train, sep="\t").loc[:, ["document", "label"]]
 
 # extracting morph in sentences
-list_of_tokens = tr['document'].apply(split_morphs).tolist()
+list_of_tokens = tr["document"].apply(split_morphs).tolist()
 
 # generating the vocab
 token_counter = Counter(itertools.chain.from_iterable(list_of_tokens))
-tmp_vocab = nlp.Vocab(counter=token_counter, min_freq=10, bos_token=None, eos_token=None)
+tmp_vocab = nlp.Vocab(
+    counter=token_counter, min_freq=10, bos_token=None, eos_token=None
+)
 
 # connecting SISG embedding with vocab
-ptr_embedding = nlp.embedding.create('fasttext', source='wiki.ko')
+ptr_embedding = nlp.embedding.create("fasttext", source="wiki.ko")
 tmp_vocab.set_embedding(ptr_embedding)
 array = tmp_vocab.embedding.idx_to_vec.asnumpy()
 
-vocab = Vocab(tmp_vocab.idx_to_token, padding_token='<pad>', unknown_token='<unk>', bos_token=None, eos_token=None)
+vocab = Vocab(
+    tmp_vocab.idx_to_token,
+    padding_token="<pad>",
+    unknown_token="<unk>",
+    bos_token=None,
+    eos_token=None,
+)
 vocab.embedding = array
 
 # saving vocab
-with open('data/vocab.pkl', mode='wb') as io:
+with open(data_dir / "vocab.pkl", mode="wb") as io:
     pickle.dump(vocab, io)
-data_config.vocab = 'data/vocab.pkl'
-data_config.save('data/config.json')
+
+config.update({"vocab": str(data_dir / "vocab.pkl")})
+config.save(data_dir / "config.json")
