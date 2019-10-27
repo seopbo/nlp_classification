@@ -167,8 +167,13 @@ class Vocab:
 
 class Tokenizer:
     """Tokenizer class"""
-    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
-                 pad_fn: Callable[[List[int]], List[int]] = None) -> None:
+
+    def __init__(
+        self,
+        vocab: Vocab,
+        split_fn: Callable[[str], List[str]],
+        pad_fn: Callable[[List[int]], List[int]] = None,
+    ) -> None:
         """Instantiating Tokenizer class
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
@@ -198,6 +203,7 @@ class Tokenizer:
 
 class PadSequence:
     """PadSequence class"""
+
     def __init__(self, length: int, pad_val: int = 0, clip: bool = True) -> None:
         """Instantiating PadSequence class
         Args:
@@ -213,7 +219,7 @@ class PadSequence:
         sample_length = len(sample)
         if sample_length >= self._length:
             if self._clip and sample_length > self._length:
-                return sample[:self._length]
+                return sample[: self._length]
             else:
                 return sample
         else:

@@ -1,4 +1,5 @@
 import pickle
+from pathlib import Path
 from model.utils import Vocab
 from utils import Config
 
@@ -15,9 +16,10 @@ jongsung_list = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ',
 list_of_jamos = sorted(set(chosung_list + jungsung_list + jongsung_list))
 vocab = Vocab(list_of_tokens=list_of_jamos, bos_token=None, eos_token=None)
 
-with open('data/vocab.pkl', mode='wb') as io:
+data_dir = Path('data')
+with open(data_dir / 'vocab.pkl', mode='wb') as io:
     pickle.dump(vocab, io)
 
-data_config = Config('data/config.json')
-data_config.vocab = 'data/vocab.pkl'
-data_config.save('data/config.json')
+config = Config(data_dir / 'config.json')
+config.update({'vocab': str(data_dir / 'vocab.pkl')})
+config.save(data_dir / 'config.json')

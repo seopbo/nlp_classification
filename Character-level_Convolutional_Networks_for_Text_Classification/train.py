@@ -15,6 +15,11 @@ from model.utils import Tokenizer, PadSequence
 from model.metric import evaluate, acc
 from utils import Config, CheckpointManager, SummaryManager
 
+# for reproducibility
+torch.manual_seed(777)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', default='data', help="Directory containing config.json of data")
 parser.add_argument('--model_dir', default='experiments/base_model', help="Directory containing config.json of model")
@@ -24,8 +29,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data_dir = Path(args.data_dir)
     model_dir = Path(args.model_dir)
-    data_config = Config(json_path=data_dir / 'config.json')
-    model_config = Config(json_path=model_dir / 'config.json')
+    data_config = Config(data_dir / 'config.json')
+    model_config = Config(model_dir / 'config.json')
 
     # tokenizer
     with open(data_config.vocab, mode='rb') as io:
@@ -41,7 +46,7 @@ if __name__ == '__main__':
     tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
     tr_dl = DataLoader(tr_ds, batch_size=model_config.batch_size, shuffle=True, num_workers=4, drop_last=True)
     val_ds = Corpus(data_config.validation, tokenizer.split_and_transform)
-    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size)
+    val_dl = DataLoader(val_ds, batch_size=model_config.batch_size, num_workers=4)
 
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=model_config.learning_rate)
