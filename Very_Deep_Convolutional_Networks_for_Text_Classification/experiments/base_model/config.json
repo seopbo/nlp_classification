@@ -4,7 +4,7 @@
   "k_max": 8,
   "length": 300,
   "epochs": 5,
-  "batch_size": 128,
+  "batch_size": 256,
   "learning_rate": 1e-3,
-  "summary_step": 1000
+  "summary_step": 500
 }
