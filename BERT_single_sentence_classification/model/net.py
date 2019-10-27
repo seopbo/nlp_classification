@@ -1,5 +1,5 @@
 import torch.nn as nn
-from pytorch_transformers.modeling_bert import BertPreTrainedModel, BertModel
+from transformers.modeling_bert import BertPreTrainedModel, BertModel
 
 
 class SentenceClassifier(BertPreTrainedModel):

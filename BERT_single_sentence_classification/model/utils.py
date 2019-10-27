@@ -167,9 +167,15 @@ class Vocab:
 
 class Tokenizer:
     """Tokenizer class"""
-    def __init__(self, vocab: Vocab, split_fn: Callable[[str], List[str]],
-                 pad_fn: Callable[[List[int]], List[int]] = None) -> None:
+
+    def __init__(
+        self,
+        vocab: Vocab,
+        split_fn: Callable[[str], List[str]],
+        pad_fn: Callable[[List[int]], List[int]] = None,
+    ) -> None:
         """Instantiating Tokenizer class
+
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab created from specific split_fn
             split_fn (Callable): a function that can act as a splitter
@@ -198,6 +204,7 @@ class Tokenizer:
 
 class PadSequence:
     """PadSequence class"""
+
     def __init__(self, length: int, pad_val: int = 0, clip: bool = True) -> None:
         """Instantiating PadSequence class
         Args:
@@ -213,7 +220,7 @@ class PadSequence:
         sample_length = len(sample)
         if sample_length >= self._length:
             if self._clip and sample_length > self._length:
-                return sample[:self._length]
+                return sample[: self._length]
             else:
                 return sample
         else:
@@ -223,8 +230,11 @@ class PadSequence:
 class PreProcessor(Tokenizer):
     def preprocess(self, string):
         list_of_tokens = self.split(string)
-        if len(list_of_tokens) >= self._pad._length:
-            list_of_tokens = list_of_tokens[:(self._pad._length - 1)]
-        list_of_tokens = ['[CLS]'] + list_of_tokens
+
+        if self._pad:
+            if len(list_of_tokens) >= self._pad._length:
+                list_of_tokens = list_of_tokens[: (self._pad._length - 2)]
+
+        list_of_tokens = ["[CLS]"] + list_of_tokens + ["[SEP]"]
         list_of_indices = self.transform(list_of_tokens)
         return list_of_indices

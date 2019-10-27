@@ -29,7 +29,7 @@ import unicodedata
 import os
 import logging
 
-from pytorch_transformers.file_utils import cached_path
+from transformers.file_utils import cached_path
 # from pytorch_pretrained_bert.file_utils import cached_path
 # from .file_utils import cached_path
 
