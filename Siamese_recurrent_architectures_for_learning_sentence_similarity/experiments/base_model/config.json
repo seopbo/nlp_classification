@@ -4,5 +4,5 @@
   "epochs": 5,
   "batch_size": 64,
   "learning_rate": 1e-3,
-  "summary_step": 1000
+  "summary_step": 500
 }
