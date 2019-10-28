@@ -4,7 +4,6 @@ import torch.nn as nn
 import pickle
 from pathlib import Path
 from torch.utils.data import DataLoader
-from mecab import MeCab
 from model.data import Corpus, batchify
 from model.net import SAN
 from model.split import split_morphs
