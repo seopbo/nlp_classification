@@ -39,7 +39,6 @@ lazy-object-proxy==1.4.2
 Markdown==3.1.1
 MarkupSafe==1.1.1
 mccabe==0.6.1
-mecab-python===0.996-ko-0.9.2
 mistune==0.8.4
 more-itertools==7.2.0
 mxnet-cu101==1.5.1.post0
