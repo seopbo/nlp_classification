@@ -21,13 +21,7 @@ parser.add_argument(
     help="Directory containing config.json of model",
 )
 parser.add_argument(
-    "--restore_file",
-    default="best",
-    help="name of the file in --model_dir \
-                     containing weights to load",
-)
-parser.add_argument(
-    "--data_name",
+    "--dataset",
     default="validation",
     help="name of the data in --data_dir to be evaluate",
 )
@@ -37,8 +31,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data_dir = Path(args.data_dir)
     model_dir = Path(args.model_dir)
-    data_config = Config(json_path=data_dir / "config.json")
-    model_config = Config(json_path=model_dir / "config.json")
+    data_config = Config(data_dir / "config.json")
+    model_config = Config(model_dir / "config.json")
 
     # tokenizer
     with open(data_config.vocab, mode="rb") as io:
@@ -47,7 +41,7 @@ if __name__ == "__main__":
 
     # model (restore)
     checkpoint_manager = CheckpointManager(model_dir)
-    checkpoint = checkpoint_manager.load_checkpoint(args.restore_file + ".tar")
+    checkpoint = checkpoint_manager.load_checkpoint("best.tar")
     model = MaLSTM(
         num_classes=model_config.num_classes,
         hidden_dim=model_config.hidden_dim,
@@ -56,7 +50,7 @@ if __name__ == "__main__":
     model.load_state_dict(checkpoint["model_state_dict"])
 
     # evaluation
-    filepath = getattr(data_config, args.data_name)
+    filepath = getattr(data_config, args.dataset)
     ds = Corpus(filepath, tokenizer.split_and_transform)
     dl = DataLoader(
         ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
@@ -69,7 +63,7 @@ if __name__ == "__main__":
     summary = evaluate(model, dl, {"loss": nn.CrossEntropyLoss(), "acc": acc}, device)
 
     summary_manager.load("summary.json")
-    summary_manager.update({"{}".format(args.data_name): summary})
+    summary_manager.update({"{}".format(args.dataset): summary})
     summary_manager.save("summary.json")
 
     print("loss: {:.3f}, acc: {:.2%}".format(summary["loss"], summary["acc"]))

@@ -14,6 +14,10 @@ from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
+# for reproducibility
+torch.manual_seed(777)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -30,8 +34,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data_dir = Path(args.data_dir)
     model_dir = Path(args.model_dir)
-    data_config = Config(json_path=data_dir / "config.json")
-    model_config = Config(json_path=model_dir / "config.json")
+    data_config = Config(data_dir / "config.json")
+    model_config = Config(model_dir / "config.json")
 
     # tokenizer
     with open(data_config.vocab, mode="rb") as io:
