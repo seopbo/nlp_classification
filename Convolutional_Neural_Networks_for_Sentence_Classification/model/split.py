@@ -1,4 +1,4 @@
-from mecab import MeCab
+from konlpy.tag import Mecab
 
-split_morphs = MeCab().morphs
+split_morphs = Mecab().morphs
 
