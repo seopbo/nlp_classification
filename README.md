@@ -31,11 +31,11 @@ The papers were implemented in using korean corpus
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
 
-| Model \ Accuracy | Train (6,060) | Validation (1,516) | Date |
-| :--------------- | :-------: | :------------: | -------------- |
-| SAN           |  89.58%  |     82.71%     | 191004         |
-| Siam | 92.98% | 84.03% | 191004 |
-| ETRIBERT | 96.07% | 93.46% | 191004 |
+| Model \ Accuracy | Train (6,136) | Validation (682) | Test (758) | Date |
+| :--------------- | :-------: | :------------: | :------------: | -------------- |
+| SAN           |  88.34%  |     82.69%     |     80.60%     | 191028       |
+| Siam | 92.98% | 84.03% |  | 191004 |
+| ETRIBERT | 96.07% | 93.46% |  | 191004 |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
