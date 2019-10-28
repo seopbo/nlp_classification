@@ -14,6 +14,11 @@ from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
+# for reproducibility
+torch.manual_seed(777)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
 
 def regularize(attn_mat, r, device):
     sim_mat = torch.bmm(attn_mat, attn_mat.permute(0, 2, 1))
@@ -37,8 +42,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     data_dir = Path(args.data_dir)
     model_dir = Path(args.model_dir)
-    data_config = Config(json_path=data_dir / "config.json")
-    model_config = Config(json_path=model_dir / "config.json")
+    data_config = Config(data_dir / "config.json")
+    model_config = Config(model_dir / "config.json")
 
     # tokenizer
     with open(data_config.vocab, mode="rb") as io:
@@ -46,8 +51,14 @@ if __name__ == "__main__":
     tokenizer = Tokenizer(vocab, split_morphs)
 
     # model
-    model = SAN(num_classes=model_config.num_classes, lstm_hidden_dim=model_config.lstm_hidden_dim,
-                hidden_dim=model_config.hidden_dim, da=model_config.da, r=model_config.r, vocab=tokenizer.vocab)
+    model = SAN(
+        num_classes=model_config.num_classes,
+        lstm_hidden_dim=model_config.lstm_hidden_dim,
+        hidden_dim=model_config.hidden_dim,
+        da=model_config.da,
+        r=model_config.r,
+        vocab=tokenizer.vocab,
+    )
 
     # training
     tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
@@ -73,7 +84,7 @@ if __name__ == "__main__":
     writer = SummaryWriter("{}/runs".format(model_dir))
     checkpoint_manager = CheckpointManager(model_dir)
     summary_manager = SummaryManager(model_dir)
-    best_val_loss = 1e+10
+    best_val_loss = 1e10
 
     for epoch in tqdm(range(model_config.epochs), desc="epochs"):
 
@@ -106,7 +117,7 @@ if __name__ == "__main__":
                 val_loss = evaluate(model, val_dl, {"loss": loss_fn}, device)["loss"]
                 writer.add_scalars(
                     "loss",
-                    {"train": tr_loss / (step + 1), "val": val_loss},
+                    {"train": tr_loss / (step + 1), "test": val_loss},
                     epoch * len(tr_dl) + step,
                 )
                 tqdm.write(

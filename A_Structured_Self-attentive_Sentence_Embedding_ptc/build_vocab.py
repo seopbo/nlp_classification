@@ -6,10 +6,11 @@ from pathlib import Path
 from collections import Counter
 from model.split import split_morphs
 from model.utils import Vocab
+from utils import Config
 
-cwd = Path.cwd()
-data_dir = cwd / "data"
-train = pd.read_csv(data_dir / "train.txt", sep="\t")
+data_dir = Path("data")
+config = Config(data_dir / "config.json")
+train = pd.read_csv(config.train, sep="\t")
 
 list_of_tokens_qa = train["question1"].apply(lambda sen: split_morphs(sen)).tolist()
 list_of_tokens_qb = train["question2"].apply(lambda sen: split_morphs(sen)).tolist()
@@ -25,3 +26,6 @@ vocab.embedding = tmp_vocab.embedding.idx_to_vec.asnumpy()
 
 with open(data_dir / "vocab.pkl", mode="wb") as io:
     pickle.dump(vocab, io)
+
+config.update({"vocab": str(data_dir / "vocab.pkl")})
+config.save(data_dir / "config.json")
