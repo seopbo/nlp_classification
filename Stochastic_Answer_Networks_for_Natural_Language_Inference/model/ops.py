@@ -159,12 +159,48 @@ class Linker(nn.Module):
         )
 
 
+class BiLSTM(nn.Module):
+    """BiLSTM class"""
+    def __init__(self, input_size: int, hidden_size: int, using_sequence: bool = True) -> None:
+        """Instantiating BiLSTM class
+        Args:
+            input_size (int): the number of expected features in the input x
+            hidden_size (int): the number of features in the hidden state h
+            using_sequence (bool): using all hidden states of sequence. Default: True
+        """
+        super(BiLSTM, self).__init__()
+        self._using_sequence = using_sequence
+        self._ops = nn.LSTM(input_size, hidden_size, batch_first=True, bidirectional=True)
+
+    def forward(self, x: PackedSequence) -> torch.Tensor:
+        outputs, hc = self._ops(x)
+
+        if self._using_sequence:
+            hiddens = pad_packed_sequence(outputs)[0].permute(1, 0, 2)
+            return hiddens
+        else:
+            feature = torch.cat([*hc[0]], dim=1)
+            return feature
+
+
+class MaxOut(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super(MaxOut, self).__init__()
+        self._ops_1 = nn.Linear(input_size, hidden_size)
+        self._ops_2 = nn.Linear(input_size, hidden_size)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        feature_1 = self._ops_1(x)
+        feature_2 = self._ops_2(x)
+        return feature_1.max(feature_2)
+
+
 class LexiconEncoder(nn.Module):
     def __init__(self, coarse_vocab, fine_vocab, fine_embedding_dim):
         super(LexiconEncoder, self).__init__()
         self._coarse_emb = PreEmbedding(coarse_vocab, coarse_vocab.to_indices(coarse_vocab.padding_token),
                                         freeze=False, permuting=False, tracking=True)
-        self._fine_emb = Embedding(len(jamo_vocab), fine_embedding_dim, fine_vocab.to_indices(fine_vocab.padding_token),
+        self._fine_emb = Embedding(len(fine_vocab), fine_embedding_dim, fine_vocab.to_indices(fine_vocab.padding_token),
                                    permuting=True, tracking=False)
         self._conv_uni = Conv1d(in_channels=fine_embedding_dim, out_channels=50, kernel_size=1, stride=1,
                                 padding=0, tracking=False)
@@ -172,9 +208,13 @@ class LexiconEncoder(nn.Module):
                                 padding=0, tracking=False)
         self._conv_penta = Conv1d(in_channels=fine_embedding_dim, out_channels=150, kernel_size=5, stride=1,
                                   padding=0, tracking=False)
-        self._postion_wise_ffn = Conv1d(in_channels=self._coarse_emb._ops.embedding_dim + 50 + 100 + 150,
-                                        out_channels=self._coarse_emb._ops.embedding_dim + 50 + 100 + 150,
-                                        kernel_size=1, stride=1, padding=0, tracking=False)
+        self._output_size = self._coarse_emb._ops.embedding_dim + 50 + 100 + 150
+        self._postion_wise_ffn_1 = Conv1d(in_channels=self._output_size,
+                                          out_channels=self._output_size,
+                                          kernel_size=1, stride=1, padding=0, tracking=False)
+        self._postion_wise_ffn_2 = Conv1d(in_channels=self._output_size,
+                                          out_channels=self._output_size,
+                                          kernel_size=1, stride=1, padding=0, tracking=False)
 
     def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
         coarse_input, fine_input = inputs
@@ -191,33 +231,29 @@ class LexiconEncoder(nn.Module):
         fine_penta_fmap = torch.stack(fine_penta_fmap.chunk(fine_input.size(0), dim=0))
         fine_fmap = torch.cat([fine_uni_fmap, fine_tri_fmap, fine_penta_fmap], dim=-1)
         fmap = torch.cat([coarse_embed, fine_fmap], dim=-1).permute(0, 2, 1)
-        lexicon_fmap = self._postion_wise_ffn(fmap)
+        intermediate_fmap = self._postion_wise_ffn_1(fmap)
+        lexicon_fmap = self._postion_wise_ffn_2(intermediate_fmap)
         return lexicon_fmap, length
 
 
-# import pickle
-# from torch.utils.data import DataLoader
-# from model.split import split_morphs, split_jamos
-# from model.utils import PreProcessor
-# from model.data import Corpus, batchify
-#
-# with open("data/jamo_vocab.pkl", mode="rb") as io:
-#     jamo_vocab = pickle.load(io)
-# with open("data/morph_vocab.pkl", mode="rb") as io:
-#     morph_vocab = pickle.load(io)
-#
-#
-# preprocessor = PreProcessor(
-#     coarse_vocab=morph_vocab,
-#     fine_vocab=jamo_vocab,
-#     coarse_split_fn=split_morphs,
-#     fine_split_fn=split_jamos,
-# )
-# ds = Corpus("data/train.txt", transform_fn=preprocessor.preprocess)
-# dl = DataLoader(ds, batch_size=2, shuffle=False, collate_fn=batchify)
-#
-# qa_mb, qb_mb, y_mb = next(iter(dl))
-#
-# lexicon = LexiconEncoder(morph_vocab, jamo_vocab, 32)
-# linker = Linker()
-# bi(linker(lexicon(qb_mb))).shape
+class ContextualEncoder(nn.Module):
+    def __init__(self, input_size, hidden_size):
+        super(ContextualEncoder, self).__init__()
+        self._link = Linker()
+        self._ops_1 = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=2, batch_first=True,
+                              bidirectional=True)
+        self._act_1 = MaxOut(input_size=hidden_size * 2, hidden_size=hidden_size)
+        self._ops_2 = nn.LSTM(input_size=hidden_size * 2, hidden_size=hidden_size, num_layers=2, batch_first=True,
+                              bidirectional=True)
+        self._act_2 = MaxOut(input_size=hidden_size *2, hidden_size=hidden_size)
+
+    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]):
+        sequences = self._link(inputs)
+        outputs_1, _ = self._ops_1(sequences)
+        hidden_states_1, _ = pad_packed_sequence(outputs_1, batch_first=True)
+        hidden_states_1 = self._act_1(hidden_states_1)
+        outputs_2, _ = self._ops_2(outputs_1)
+        hidden_states_2, length = pad_packed_sequence(outputs_2, batch_first=True)
+        hidden_states_2 = self._act_2(hidden_states_2)
+        contextual_fmap = torch.cat([hidden_states_1, hidden_states_2], dim=-1)
+        return contextual_fmap, length
