@@ -155,12 +155,20 @@ fine_emb = nn.Embedding(num_embeddings=len(jamo_vocab), embedding_dim=32,
                         padding_idx=jamo_vocab.to_indices(jamo_vocab.padding_token))
 coarse_emb(qa_mb[0])[0].shape
 qa_mb[1].shape
-tst = fine_emb(qa_mb[1])
-tst.shape
-ops1=nn.Conv2d(in_channels=10, out_channels=50, kernel_size=1, groups=2)
-ops1(tst)
-torch.unbind(tst, 0)[0]
+qa_mb[1]
+tst = torch.cat([*qa_mb[1]], dim=0)
+tst1 = fine_emb(tst).permute(0, 2, 1)
+ops1 = nn.Conv1d(in_channels=32, out_channels=50, kernel_size=1)
+tst2 = ops1(tst1)
+tst3 = torch.max(tst2, dim=-1)[0]
+tst4 = torch.stack([*tst3.chunk(2, dim=0)], 0)
 
+tmp = fine_emb(qa_mb[1][0]).permute(0, 2, 1)
+tmp1 = ops1(tmp)
+tmp2 = torch.max(tmp1, dim=-1)[0]
+
+tmp2
+tst4[0]
 class LexiconEncoder(nn.Module):
     def __init__(self, coarse_vocab, fine_vocab):
         super(LexiconEncoder, self).__init__()
