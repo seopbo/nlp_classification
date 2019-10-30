@@ -6,6 +6,44 @@ from model.utils import Vocab
 from typing import Tuple, Union, Callable
 
 
+class Embedding(nn.Module):
+    """Embedding class"""
+
+    def __init__(
+        self,
+        num_embeddings: int,
+        embedding_dim: int,
+        padding_idx: int = 1,
+        permuting: bool = True,
+        tracking: bool = True,
+    ) -> None:
+        """Instantiating Embedding class
+
+        Args:
+            num_embeddings (int): the number of vocabulary size
+            embedding_dim (int): the dimension of embedding vector
+            padding_idx (int): denote padding_idx to "<pad>" token
+            permuting (bool): permuting (n, l, c) -> (n, c, l). Default: True
+            tracking (bool): tracking length of sequence. Default: True
+        """
+        super(Embedding, self).__init__()
+        self._tracking = tracking
+        self._permuting = permuting
+        self._padding_idx = padding_idx
+        self._ops = nn.Embedding(num_embeddings, embedding_dim, self._padding_idx)
+
+    def forward(
+        self, x: torch.Tensor
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        fmap = self._ops(x).permute(0, 2, 1) if self._permuting else self._ops(x)
+
+        if self._tracking:
+            fmap_length = x.ne(self._padding_idx).sum(dim=1)
+            return fmap, fmap_length
+        else:
+            return fmap
+
+
 class PreEmbedding(nn.Module):
     """PreEmbedding class"""
 
@@ -17,7 +55,8 @@ class PreEmbedding(nn.Module):
         permuting: bool = True,
         tracking: bool = True,
     ) -> None:
-        """Instantiating Embedding class
+        """Instantiating PreEmbedding class
+
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab
             padding_idx (int): denote padding_idx to padding token
@@ -29,7 +68,6 @@ class PreEmbedding(nn.Module):
         self._padding_idx = padding_idx
         self._permuting = permuting
         self._tracking = tracking
-
         self._ops = nn.Embedding.from_pretrained(
             torch.from_numpy(vocab.embedding),
             freeze=freeze,
@@ -51,8 +89,16 @@ class PreEmbedding(nn.Module):
 class Conv1d(nn.Module):
     """Conv1d class"""
 
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int, stride: int = 1, padding: int = 1,
-                 activation: Callable[[torch.Tensor], torch.Tensor] = F.relu, tracking: bool = True) -> None:
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        stride: int = 1,
+        padding: int = 1,
+        activation: Callable[[torch.Tensor], torch.Tensor] = F.relu,
+        tracking: bool = True,
+    ) -> None:
         """Instantiating Conv1d class
         Args:
             in_channels (int): the number of channels in the input feature map
@@ -71,44 +117,26 @@ class Conv1d(nn.Module):
         self._activation = activation
         self._tracking = tracking
 
-    def forward(self, x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]) \
-            -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+    def forward(
+        self, x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         if self._tracking:
             fmap, fmap_length = x
-            fmap_length = (fmap_length + 2 * self._padding - (self._kernel_size - 1) - 1) / self._stride + 1
-            fmap = self._activation(self._ops(fmap)) if self._activation is not None else self._ops(fmap)
+            fmap_length = (
+                fmap_length + 2 * self._padding - (self._kernel_size - 1) - 1
+            ) / self._stride + 1
+            fmap = (
+                self._activation(self._ops(fmap))
+                if self._activation is not None
+                else self._ops(fmap)
+            )
             return fmap, fmap_length
         else:
-            fmap = self._activation(self._ops(x)) if self._activation is not None else self._ops(x)
-            return fmap
-
-
-class MaxPool1d(nn.Module):
-    """MaxPool1d class"""
-
-    def __init__(self, kernel_size: int, stride: int, tracking: bool = True) -> None:
-        """Instantiating MaxPool1d class
-        Args:
-            kernel_size (int): the kernel size of 1d max pooling
-            stride (int): the stride of 1d max pooling
-            tracking (bool): tracking length of sequence. Default: True
-        """
-        super(MaxPool1d, self).__init__()
-        self._kernel_size = kernel_size
-        self._stride = stride
-        self._tracking = tracking
-
-        self._ops = nn.MaxPool1d(self._kernel_size, self._stride)
-
-    def forward(self, x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]) \
-            -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        if self._tracking:
-            fmap, fmap_length = x
-            fmap = self._ops(fmap)
-            fmap_length = (fmap_length - (self._kernel_size - 1) - 1) / self._stride + 1
-            return fmap, fmap_length
-        else:
-            fmap = self._ops(x)
+            fmap = (
+                self._activation(self._ops(x))
+                if self._activation is not None
+                else self._ops(x)
+            )
             return fmap
 
 
@@ -130,53 +158,66 @@ class Linker(nn.Module):
             fmap, fmap_length, batch_first=True, enforce_sorted=False
         )
 
-import pickle
-from torch.utils.data import DataLoader
-from model.split import split_morphs, split_jamos
-from model.utils import PreProcessor
-from model.data import Corpus, batchify
 
-with open('data/jamo_vocab.pkl', mode='rb') as io:
-    jamo_vocab = pickle.load(io)
-with open('data/morph_vocab.pkl', mode='rb') as io:
-    morph_vocab = pickle.load(io)
-
-
-preprocessor = PreProcessor(coarse_vocab=morph_vocab, fine_vocab=jamo_vocab,
-                            coarse_split_fn=split_morphs, fine_split_fn=split_jamos)
-ds = Corpus('data/train.txt', transform_fn=preprocessor.preprocess)
-dl = DataLoader(ds, batch_size=2, shuffle=False, collate_fn=batchify)
-
-qa_mb, qb_mb, y_mb = next(iter(dl))
-
-coarse_emb = PreEmbedding(morph_vocab, padding_idx=morph_vocab.to_indices(morph_vocab.padding_token),
-                          freeze=False, permuting=False)
-fine_emb = nn.Embedding(num_embeddings=len(jamo_vocab), embedding_dim=32,
-                        padding_idx=jamo_vocab.to_indices(jamo_vocab.padding_token))
-coarse_emb(qa_mb[0])[0].shape
-qa_mb[1].shape
-qa_mb[1]
-tst = torch.cat([*qa_mb[1]], dim=0)
-tst1 = fine_emb(tst).permute(0, 2, 1)
-ops1 = nn.Conv1d(in_channels=32, out_channels=50, kernel_size=1)
-tst2 = ops1(tst1)
-tst3 = torch.max(tst2, dim=-1)[0]
-tst4 = torch.stack([*tst3.chunk(2, dim=0)], 0)
-
-tmp = fine_emb(qa_mb[1][0]).permute(0, 2, 1)
-tmp1 = ops1(tmp)
-tmp2 = torch.max(tmp1, dim=-1)[0]
-
-tmp2
-tst4[0]
 class LexiconEncoder(nn.Module):
-    def __init__(self, coarse_vocab, fine_vocab):
+    def __init__(self, coarse_vocab, fine_vocab, fine_embedding_dim):
         super(LexiconEncoder, self).__init__()
-        self._coarse_emb = PreEmbedding(coarse_vocab, padding_idx=coarse_vocab.to_indices(coarse_vocab.padding_token),
-                                        freeze=False, permuting=False)
-        self._fine_emb = PreEmbedding(fine_vocab, padding_idx=fine_vocab.to_indices(fine_vocab.padding_token),
-                                      freeze=False, permuting=True)
+        self._coarse_emb = PreEmbedding(coarse_vocab, coarse_vocab.to_indices(coarse_vocab.padding_token),
+                                        freeze=False, permuting=False, tracking=True)
+        self._fine_emb = Embedding(len(jamo_vocab), fine_embedding_dim, fine_vocab.to_indices(fine_vocab.padding_token),
+                                   permuting=True, tracking=False)
+        self._conv_uni = Conv1d(in_channels=fine_embedding_dim, out_channels=50, kernel_size=1, stride=1,
+                                padding=0, tracking=False)
+        self._conv_tri = Conv1d(in_channels=fine_embedding_dim, out_channels=100, kernel_size=3, stride=1,
+                                padding=0, tracking=False)
+        self._conv_penta = Conv1d(in_channels=fine_embedding_dim, out_channels=150, kernel_size=5, stride=1,
+                                  padding=0, tracking=False)
+        self._postion_wise_ffn = Conv1d(in_channels=self._coarse_emb._ops.embedding_dim + 50 + 100 + 150,
+                                        out_channels=self._coarse_emb._ops.embedding_dim + 50 + 100 + 150,
+                                        kernel_size=1, stride=1, padding=0, tracking=False)
 
-torch.nn.LayerNorm
-pytorch old version
-{'ops.LayerNorm.gamma'}
+    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+        coarse_input, fine_input = inputs
+        coarse_embed, length = self._coarse_emb(coarse_input)
+
+        fine_input_reshaped = torch.cat([*fine_input], dim=0)
+        fine_embed = self._fine_emb(fine_input_reshaped)
+
+        fine_uni_fmap = self._conv_uni(fine_embed).max(dim=-1)[0]
+        fine_uni_fmap = torch.stack(fine_uni_fmap.chunk(fine_input.size(0), dim=0))
+        fine_tri_fmap = self._conv_tri(fine_embed).max(dim=-1)[0]
+        fine_tri_fmap = torch.stack(fine_tri_fmap.chunk(fine_input.size(0), dim=0))
+        fine_penta_fmap = self._conv_penta(fine_embed).max(dim=-1)[0]
+        fine_penta_fmap = torch.stack(fine_penta_fmap.chunk(fine_input.size(0), dim=0))
+        fine_fmap = torch.cat([fine_uni_fmap, fine_tri_fmap, fine_penta_fmap], dim=-1)
+        fmap = torch.cat([coarse_embed, fine_fmap], dim=-1).permute(0, 2, 1)
+        lexicon_fmap = self._postion_wise_ffn(fmap)
+        return lexicon_fmap, length
+
+
+# import pickle
+# from torch.utils.data import DataLoader
+# from model.split import split_morphs, split_jamos
+# from model.utils import PreProcessor
+# from model.data import Corpus, batchify
+#
+# with open("data/jamo_vocab.pkl", mode="rb") as io:
+#     jamo_vocab = pickle.load(io)
+# with open("data/morph_vocab.pkl", mode="rb") as io:
+#     morph_vocab = pickle.load(io)
+#
+#
+# preprocessor = PreProcessor(
+#     coarse_vocab=morph_vocab,
+#     fine_vocab=jamo_vocab,
+#     coarse_split_fn=split_morphs,
+#     fine_split_fn=split_jamos,
+# )
+# ds = Corpus("data/train.txt", transform_fn=preprocessor.preprocess)
+# dl = DataLoader(ds, batch_size=2, shuffle=False, collate_fn=batchify)
+#
+# qa_mb, qb_mb, y_mb = next(iter(dl))
+#
+# lexicon = LexiconEncoder(morph_vocab, jamo_vocab, 32)
+# linker = Linker()
+# bi(linker(lexicon(qb_mb))).shape

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from model.ops import PreEmbedding, Linker, LSTMEncoder
+from model.ops import Embedding, Linker, LSTMEncoder
 from model.utils import Vocab
 from typing import Tuple
 
@@ -17,7 +17,7 @@ class MaLSTM(nn.Module):
             vocab (model.utils.Vocab): the instance of model.utils.Vocab
         """
         super(MaLSTM, self).__init__()
-        self._emb = PreEmbedding(
+        self._emb = Embedding(
             vocab, padding_idx=1, freeze=False, permuting=False, tracking=True
         )
         self._pipe = Linker(permuting=False)
