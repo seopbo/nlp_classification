@@ -227,7 +227,7 @@ class PadSequence:
 
 
 class PreProcessor:
-    def __init__(self, coarse_vocab, fine_vocab, coarse_split_fn, fine_split_fn, fine_max_len=12):
+    def __init__(self, coarse_vocab, fine_vocab, coarse_split_fn, fine_split_fn, fine_max_len=15):
         self._coarse_vocab = coarse_vocab
         self._fine_vocab = fine_vocab
         self._coarse_split_fn = coarse_split_fn

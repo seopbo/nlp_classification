@@ -1,14 +1,13 @@
 import argparse
 import pickle
 import torch
-import torch.nn as nn
 from pathlib import Path
 from torch.utils.data import DataLoader
-from model.net import MaLSTM
+from model.net import SAN
 from model.data import Corpus, batchify
-from model.utils import Tokenizer
-from model.split import split_morphs
-from model.metric import evaluate, acc
+from model.utils import PreProcessor
+from model.split import split_morphs, split_jamos
+from model.metric import evaluate, acc, log_loss
 from utils import Config, CheckpointManager, SummaryManager
 
 parser = argparse.ArgumentParser()
@@ -35,23 +34,29 @@ if __name__ == "__main__":
     model_config = Config(model_dir / "config.json")
 
     # tokenizer
-    with open(data_config.vocab, mode="rb") as io:
-        vocab = pickle.load(io)
-    tokenizer = Tokenizer(vocab, split_morphs)
+    with open(data_config.fine_vocab, mode="rb") as io:
+        fine_vocab = pickle.load(io)
+    with open(data_config.coarse_vocab, mode="rb") as io:
+        coarse_vocab = pickle.load(io)
+
+    preprocessor = PreProcessor(
+        coarse_vocab=coarse_vocab,
+        fine_vocab=fine_vocab,
+        coarse_split_fn=split_morphs,
+        fine_split_fn=split_jamos,
+    )
 
     # model (restore)
     checkpoint_manager = CheckpointManager(model_dir)
     checkpoint = checkpoint_manager.load_checkpoint("best.tar")
-    model = MaLSTM(
-        num_classes=model_config.num_classes,
-        hidden_dim=model_config.hidden_dim,
-        vocab=tokenizer.vocab,
-    )
+    model = SAN(model_config.num_classes, coarse_vocab, fine_vocab,
+                model_config.fine_embedding_dim, model_config.hidden_dim, model_config.multi_step,
+                model_config.prediction_drop_ratio)
     model.load_state_dict(checkpoint["model_state_dict"])
 
     # evaluation
     filepath = getattr(data_config, args.dataset)
-    ds = Corpus(filepath, tokenizer.split_and_transform)
+    ds = Corpus(filepath, preprocessor.preprocess)
     dl = DataLoader(
         ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
     )
@@ -60,7 +65,7 @@ if __name__ == "__main__":
     model.to(device)
 
     summary_manager = SummaryManager(model_dir)
-    summary = evaluate(model, dl, {"loss": nn.CrossEntropyLoss(), "acc": acc}, device)
+    summary = evaluate(model, dl, {"loss": log_loss, "acc": acc}, device)
 
     summary_manager.load("summary.json")
     summary_manager.update({"{}".format(args.dataset): summary})

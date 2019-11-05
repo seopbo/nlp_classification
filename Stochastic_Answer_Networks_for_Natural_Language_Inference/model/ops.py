@@ -143,7 +143,7 @@ class Conv1d(nn.Module):
 class Linker(nn.Module):
     """Linker class"""
 
-    def __init__(self, permuting: bool = True):
+    def __init__(self, permuting: bool = True) -> None:
         """Instantiating Linker class
         Args:
             permuting (bool): permuting (n, c, l) -> (n, l, c). Default: True
@@ -184,7 +184,7 @@ class BiLSTM(nn.Module):
 
 
 class MaxOut(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size: int, hidden_size: int) -> None:
         super(MaxOut, self).__init__()
         self._ops_1 = nn.Linear(input_size, hidden_size)
         self._ops_2 = nn.Linear(input_size, hidden_size)
@@ -203,11 +203,11 @@ class LexiconEncoder(nn.Module):
         self._fine_emb = Embedding(len(fine_vocab), fine_embedding_dim, fine_vocab.to_indices(fine_vocab.padding_token),
                                    permuting=True, tracking=False)
         self._conv_uni = Conv1d(in_channels=fine_embedding_dim, out_channels=50, kernel_size=1, stride=1,
-                                padding=0, tracking=False)
+                                padding=0, tracking=False, activation=torch.tanh)
         self._conv_tri = Conv1d(in_channels=fine_embedding_dim, out_channels=100, kernel_size=3, stride=1,
-                                padding=0, tracking=False)
+                                padding=0, tracking=False, activation=torch.tanh)
         self._conv_penta = Conv1d(in_channels=fine_embedding_dim, out_channels=150, kernel_size=5, stride=1,
-                                  padding=0, tracking=False)
+                                  padding=0, tracking=False, activation=torch.tanh)
         self._output_size = self._coarse_emb._ops.embedding_dim + 50 + 100 + 150
         self._postion_wise_ffn_1 = Conv1d(in_channels=self._output_size,
                                           out_channels=self._output_size,
@@ -216,7 +216,7 @@ class LexiconEncoder(nn.Module):
                                           out_channels=self._output_size,
                                           kernel_size=1, stride=1, padding=0, tracking=False)
 
-    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> torch.Tensor:
+    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         coarse_input, fine_input = inputs
         coarse_embed, length = self._coarse_emb(coarse_input)
 
@@ -237,7 +237,7 @@ class LexiconEncoder(nn.Module):
 
 
 class ContextualEncoder(nn.Module):
-    def __init__(self, input_size, hidden_size):
+    def __init__(self, input_size, hidden_size) -> None:
         super(ContextualEncoder, self).__init__()
         self._link = Linker()
         self._ops_1 = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=2, batch_first=True,
@@ -245,9 +245,9 @@ class ContextualEncoder(nn.Module):
         self._act_1 = MaxOut(input_size=hidden_size * 2, hidden_size=hidden_size)
         self._ops_2 = nn.LSTM(input_size=hidden_size * 2, hidden_size=hidden_size, num_layers=2, batch_first=True,
                               bidirectional=True)
-        self._act_2 = MaxOut(input_size=hidden_size *2, hidden_size=hidden_size)
+        self._act_2 = MaxOut(input_size=hidden_size * 2, hidden_size=hidden_size)
 
-    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]):
+    def forward(self, inputs: Tuple[torch.Tensor, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
         sequences = self._link(inputs)
         outputs_1, _ = self._ops_1(sequences)
         hidden_states_1, _ = pad_packed_sequence(outputs_1, batch_first=True)

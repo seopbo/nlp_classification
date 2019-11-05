@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 from tqdm import tqdm
 
 
@@ -9,7 +10,8 @@ def evaluate(model, data_loader, metrics, device):
     summary = {metric: 0 for metric in metrics}
 
     for step, mb in tqdm(enumerate(data_loader), desc="steps", total=len(data_loader)):
-        qa_mb, qb_mb, y_mb = map(lambda elm: elm.to(device), mb)
+        qa_mb, qb_mb, y_mb = map(lambda elm: (el.to(device) for el in elm) if isinstance(elm, tuple) else
+        elm.to(device), mb)
 
         with torch.no_grad():
             y_hat_mb = model((qa_mb, qb_mb))
@@ -23,6 +25,12 @@ def evaluate(model, data_loader, metrics, device):
             summary[metric] /= len(data_loader.dataset)
 
     return summary
+
+
+def log_loss(inputs, targets):
+    inputs = torch.log(inputs)
+    loss = F.nll_loss(inputs, targets)
+    return loss
 
 
 def acc(yhat, y):

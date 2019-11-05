@@ -28,7 +28,7 @@ morph_vocab.embedding = tmp_vocab.embedding.idx_to_vec.asnumpy()
 with open(data_dir / "morph_vocab.pkl", mode="wb") as io:
     pickle.dump(morph_vocab, io)
 
-config.update({"morph_vocab": str(data_dir / "morph_vocab.pkl")})
+config.update({"coarse_vocab": str(data_dir / "morph_vocab.pkl")})
 
 # jamo
 chosung_list = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ',
@@ -49,5 +49,5 @@ jamo_vocab = Vocab(list_of_tokens=list_of_jamos, bos_token=None, eos_token=None)
 with open(data_dir / 'jamo_vocab.pkl', mode='wb') as io:
     pickle.dump(jamo_vocab, io)
 
-config.update({"jamo_vocab": str(data_dir / "jamo_vocab.pkl")})
+config.update({"fine_vocab": str(data_dir / "jamo_vocab.pkl")})
 config.save(data_dir / "config.json")

@@ -2,6 +2,6 @@
     "train": "data/train.txt",
     "validation": "data/validation.txt",
     "test": "data/test.txt",
-    "morph_vocab": "data/morph_vocab.pkl",
-    "jamo_vocab": "data/jamo_vocab.pkl"
+    "coarse_vocab": "data/morph_vocab.pkl",
+    "fine_vocab": "data/jamo_vocab.pkl"
 }
