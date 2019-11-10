@@ -3,7 +3,7 @@ The papers were implemented in using korean corpus
 
 ### Classification
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
-+ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 256, except ETRIBERT (epoch: 2, mini_batch: 32))
++ Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
 
 | Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
@@ -12,7 +12,8 @@ The papers were implemented in using korean corpus
 | ConvRec          | 86.48% | 82.81% | 82.45% | 191027 |
 | VDCNN            | 87.32% | 84.46% | 84.35% | 191027 |
 | SAN | 90.86% | 86.76% | 86.47% | 191027 |
-| ETRIBERT | 91.11% | 89.18% | 88.88% | 191027 |
+| ETRIBERT | 91.13% | 89.18% | 88.88% | 191027 |
+| SKTBERT | 92.39% | 88.98% | 88.98% | 191110 |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -24,7 +25,7 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1606.01781
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_cls) (as SAN)
   + https://arxiv.org/abs/1703.03130
-* [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT)
+* [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Paraphrase detection
