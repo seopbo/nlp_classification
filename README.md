@@ -38,6 +38,7 @@ The papers were implemented in using korean corpus
 | SAN | 94.86% | 83.13% | 84.96% | 191028 |
 | Stochastic | 88.70% | 81.67% | 81.92% | 191106 |
 | ETRIBERT | 95.04% | 93.69% | 93.93% | 191004 |
+| SKTBERT | 93.64% | 91.34% | 91.16% | 191110 |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
@@ -46,7 +47,7 @@ The papers were implemented in using korean corpus
   + https://www.aaai.org/ocs/index.php/AAAI/AAAI16/paper/viewPaper/12195
 * [x] [Stochastic Answer Networks for Natural Language Inference](https://github.com/aisolab/nlp_implementation/tree/master/Stochastic_Answer_Networks_for_Natural_Language_Inference) (as Stochastic)
   + https://arxiv.org/abs/1804.07888
-* [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as ETRIBERT)
+* [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
 
 ### Language model
