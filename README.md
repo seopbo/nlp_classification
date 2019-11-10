@@ -30,7 +30,7 @@ The papers were implemented in using korean corpus
 
 ### Paraphrase detection
 + Creating dataset from https://github.com/songys/Question_pair 
-+ Hyper-parameter was arbitrarily selected. (epoch: 5, mini_batch: 64)
++ Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
 
 | Model \ Accuracy | Train (6,136) | Validation (682) | Test (758) | Date |
 | :--------------- | :-------: | :------------: | :------------: | -------------- |
