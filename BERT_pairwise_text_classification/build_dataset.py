@@ -1,23 +1,32 @@
-import pickle
 import pandas as pd
 from pathlib import Path
+from utils import Config
 from sklearn.model_selection import train_test_split
-from pretrained.tokenization import BertTokenizer
 
 # dataset
-cwd = Path.cwd()
-dataset = pd.read_csv(cwd / 'data' / 'kor_pair_train.csv').filter(items=['question1', 'question2', 'is_duplicate'])
-tst = pd.read_csv(cwd / 'data' / 'kor_pair_test.csv').filter(items=['question1', 'question2', 'is_duplicate'])
-total = pd.concat([dataset, tst], axis=0, ignore_index=True, sort=False)
-total['is_duplicate']
-total.iloc[:30]
-tr, val = train_test_split(total, test_size=.2, random_state=777)
+data_dir = Path("data")
+train = pd.read_csv(data_dir / "kor_pair_train.csv").filter(
+    items=["question1", "question2", "is_duplicate"]
+)
 
-# eda (length)
-ptr_tokenizer = BertTokenizer.from_pretrained('pretrained/vocab.korean.rawtext.list', do_lower_case=False)
-with open('pretrained/vocab.pkl', mode='rb') as io:
-    vocab = pickle.load(io)
+test = pd.read_csv(data_dir / "kor_pair_test.csv").filter(
+    items=["question1", "question2", "is_duplicate"]
+)
 
-question1_length = tr['question1'].apply(lambda sen: len(ptr_tokenizer.tokenize(sen)))
-question2_length = tr['question2'].apply(lambda sen: len(ptr_tokenizer.tokenize(sen)))
-(question1_length + question2_length).describe()
+dataset = pd.concat([train, test], ignore_index=True, sort=False)
+
+train, test = train_test_split(dataset, test_size=.1, random_state=777)
+train, validation = train_test_split(train, test_size=.1, random_state=777)
+
+train.to_csv(data_dir / "train.txt", sep="\t", index=False)
+validation.to_csv(data_dir / "validation.txt", sep="\t", index=False)
+test.to_csv(data_dir / "test.txt", sep="\t", index=False)
+
+config = Config(
+    {
+        "train": str(data_dir / "train.txt"),
+        "validation": str(data_dir / "validation.txt"),
+        "test": str(data_dir / "test.txt"),
+    }
+)
+config.save(data_dir / "config.json")
