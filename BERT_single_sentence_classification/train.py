@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
         ], weight_decay=5e-4)
 
-    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
     writer = SummaryWriter('{}/runs_{}'.format(model_dir, args.type))

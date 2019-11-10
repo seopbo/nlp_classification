@@ -56,7 +56,7 @@ if __name__ == '__main__':
     ds = Corpus(filepath, preprocessor.preprocess)
     dl = DataLoader(ds, batch_size=model_config.batch_size, num_workers=4)
 
-    device = torch.device('cuda:1') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
     summary_manager = SummaryManager(model_dir)
