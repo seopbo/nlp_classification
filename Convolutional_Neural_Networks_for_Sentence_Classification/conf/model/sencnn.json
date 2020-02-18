@@ -1,0 +1,5 @@
+{
+  "type": "sencnn",
+  "num_classes":  2,
+  "length":  70
+}

@@ -6,6 +6,7 @@ from model.utils import Vocab
 
 class SenCNN(nn.Module):
     """SenCNN class"""
+
     def __init__(self, num_classes: int, vocab: Vocab) -> None:
         """Instantiating SenCNN class
 

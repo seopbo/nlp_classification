@@ -83,7 +83,9 @@ class CheckpointManager:
         Returns:
             state (dict): a checkpoint
         """
-        device = device or (torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu'))
+        device = device or (
+            torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        )
         state = torch.load(self._model_dir / filename, map_location=device)
         return state
 
