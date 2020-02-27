@@ -72,19 +72,19 @@ class GlobalAttn(nn.Module):
     def forward(self, decoder_output, encoder_outputs, source_length):
         attn_weights = self._attn[self._method](decoder_output, encoder_outputs, source_length)
         attn_weights = attn_weights.unsqueeze(-1)
-        context = torch.bmm(encoder_outputs.permute(0, 2, 1), attn_weights).squeeze()
+        context = torch.bmm(encoder_outputs.permute(0, 2, 1), attn_weights).squeeze(-1)
         return context
 
     def _dot_score(self, decoder_output, encoder_outputs, source_length):
         attn_mask = self._generate_mask(source_length)
-        score = torch.bmm(encoder_outputs, decoder_output.permute(0, 2, 1)).squeeze()
+        score = torch.bmm(encoder_outputs, decoder_output.permute(0, 2, 1)).squeeze(-1)
         score[~attn_mask] = float('-inf')
         attn_weights = F.softmax(score, dim=-1)
         return attn_weights
 
     def _general_score(self, decoder_output, encoder_outputs, source_length):
         attn_mask = self._generate_mask(source_length)
-        score = torch.bmm(encoder_outputs @ self._wa, decoder_output.permute(0, 2, 1)).squeeze()
+        score = torch.bmm(encoder_outputs @ self._wa, decoder_output.permute(0, 2, 1)).squeeze(-1)
         score[~attn_mask] = float('-inf')
         attn_weights = F.softmax(score, dim=-1)
         return attn_weights
@@ -93,7 +93,7 @@ class GlobalAttn(nn.Module):
         attn_mask = self._generate_mask(source_length)
         decoder_outputs = torch.cat([decoder_output for _ in range(encoder_outputs.size(1))], dim=1)
         outputs = torch.cat([encoder_outputs, decoder_outputs], dim=-1)
-        score = (outputs @ self._wa).squeeze()
+        score = (outputs @ self._wa).squeeze(-1)
         score[~attn_mask] = float('-inf')
         attn_weights = F.softmax(score, dim=-1)
         return attn_weights

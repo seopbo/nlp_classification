@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from mecab import MeCab
+from konlpy.tag import Mecab
 from stemming.porter2 import stem
 
 
@@ -8,7 +8,7 @@ class Stemmer:
     def __init__(self, language):
         punct = '"“”#$%&\'()*+,-/:;<=>@[\\]^_`{|}~'
         self._table = str.maketrans({key: None for key in punct})
-        self._morphs = MeCab().morphs
+        self._morphs = Mecab().morphs
         self._language = language
 
     @staticmethod

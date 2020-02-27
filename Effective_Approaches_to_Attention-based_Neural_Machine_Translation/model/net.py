@@ -7,9 +7,9 @@ from model.ops import Embedding, Linker, GlobalAttn
 
 
 class BidiEncoder(nn.Module):
-    """Encoder class"""
-    def __init__(self, vocab: Vocab, encoder_hidden_dim: int, drop_ratio: int = .2) -> None:
-        """Instantiating Encoder class
+    """BidiEncoder class"""
+    def __init__(self, vocab: Vocab, encoder_hidden_dim: int, drop_ratio: float = .2) -> None:
+        """Instantiating BidiEncoder class
 
         Args:
             vocab (model.utils.Vocab): the instance of model.utils.Vocab
@@ -35,7 +35,7 @@ class BidiEncoder(nn.Module):
 class AttnDecoder(nn.Module):
     """AttnDecoder class"""
     def __init__(self, vocab: Vocab, method: str, encoder_output_dim: int,
-                 decoder_hidden_dim: int, drop_ratio: int = .2) -> None:
+                 decoder_hidden_dim: int, drop_ratio: float = .2) -> None:
         """Instantiating Encoder class
 
         Args:
@@ -60,7 +60,7 @@ class AttnDecoder(nn.Module):
         embed = self._emb(x)
         ops_output, hc = self._ops(embed, hc)
         context = self._attn(ops_output, encoder_outputs, source_length)
-        ops_output = ops_output.squeeze()
+        ops_output = ops_output.squeeze(1)
         output = torch.tanh(self._concat(torch.cat([ops_output, context], dim=-1)))
         output = self._dropout(output)
         # decoder_output = self._classify(output)

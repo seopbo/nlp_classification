@@ -1,37 +1,32 @@
 import pandas as pd
-import numpy as np
 from pathlib import Path
-from model.split import Stemmer
+from sklearn.model_selection import train_test_split
+from utils import Config
 
-raw_dir = Path.cwd() / 'raw'
-list_of_filepath = sorted(raw_dir.iterdir())
+sample_dir = Path("sample")
+list_of_filepath = sorted(sample_dir.iterdir())
 
+data = pd.read_excel(list_of_filepath[0])
+data = data.loc[:, data.columns[[1, 3]]]
+data.columns = ["ko", "en"]
 
-data_dir = Path.cwd() / 'data'
-if not data_dir.exists():
-    data_dir.mkdir()
+tr, val = train_test_split(data, test_size=0.1, random_state=777)
+val, tst = train_test_split(val, test_size=0.1, random_state=777)
 
-ko = []
-en = []
+tr_filepath = (sample_dir / "train").with_suffix(".txt")
+val_filepath = (sample_dir / "validation").with_suffix(".txt")
+tst_filepath = (sample_dir / "test").with_suffix(".txt")
 
-for filepath in list_of_filepath:
-    with open(filepath, mode='r', encoding='utf-8') as io:
-        corpus = [sen.strip() for sen in io.readlines()]
+tr.to_csv(tr_filepath, sep="\t", index=False)
+val.to_csv(val_filepath, sep="\t", index=False)
+tst.to_csv(tst_filepath, sep="\t", index=False)
 
-    if 'en' in filepath.suffix:
-        en.append(corpus)
-    else:
-        ko.append(corpus)
+data_config = Config(
+    {
+        "train": str(tr_filepath),
+        "validation": str(val_filepath),
+        "test": str(tst_filepath),
+    }
+)
 
-split_ko = Stemmer(language='ko')
-split_en = Stemmer(language='en')
-
-for ds in zip(ko, en, ['dev', 'test', 'train']):
-    ko_idx = [idx for idx, sen in enumerate(ds[0]) if len(split_ko.extract_stem(sen)) <= 30]
-    en_idx = [idx for idx, sen in enumerate(ds[1]) if len(split_en.extract_stem(sen)) <= 30]
-    intersect_idx = set(np.intersect1d(ko_idx, en_idx))
-    ko_ds = [sen for idx, sen in enumerate(ds[0]) if idx in intersect_idx]
-    en_ds = [sen for idx, sen in enumerate(ds[1]) if idx in intersect_idx]
-    df = pd.DataFrame({'ko': ko_ds, 'en': en_ds})
-    df = df[(df['ko'].apply(bool) & df['en'].apply(bool))]
-    df.to_csv((data_dir / ds[2]).with_suffix('.txt'), index=False, sep='\t')
+data_config.save("conf/dataset/sample.json")

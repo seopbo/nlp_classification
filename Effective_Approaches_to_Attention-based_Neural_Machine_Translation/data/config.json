@@ -1,5 +1,0 @@
-{"train": "data/train.txt",
- "dev":  "data/dev.txt",
- "test":  "data/test.txt",
- "source_vocab": "data/vocab_ko.pkl",
- "target_vocab": "data/vocab_en.pkl"}

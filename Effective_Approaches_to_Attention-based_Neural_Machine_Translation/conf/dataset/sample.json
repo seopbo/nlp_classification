@@ -1,0 +1,7 @@
+{
+    "train": "sample/train.txt",
+    "validation": "sample/validation.txt",
+    "test": "sample/test.txt",
+    "source_vocab": "sample/vocab_ko.pkl",
+    "target_vocab": "sample/vocab_en.pkl"
+}
