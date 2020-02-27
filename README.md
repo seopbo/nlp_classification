@@ -1,4 +1,4 @@
-# NLP paper implementation with PyTorch
+# NLP paper implementation with PyTorch (under construction)
 The papers were implemented in using korean corpus 
 
 ### Classification
@@ -7,13 +7,13 @@ The papers were implemented in using korean corpus
 
 | Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
-| SenCNN           |  90.80%  |     86.48%     |  85.90%  | 191027 |
-| CharCNN          | 86.20% | 82.21% | 81.60% | 191027 |
-| ConvRec          | 86.48% | 82.81% | 82.45% | 191027 |
-| VDCNN            | 87.32% | 84.46% | 84.35% | 191027 |
-| SAN | 90.86% | 86.76% | 86.47% | 191027 |
-| ETRIBERT | 91.13% | 89.18% | 88.88% | 191027 |
-| SKTBERT | 92.39% | 88.98% | 88.98% | 191110 |
+| SenCNN           |  90.80%  |     86.48%     |  85.90%  | 19/10/27 |
+| CharCNN          | 86.20% | 82.21% | 81.60% | 19/10/27 |
+| ConvRec          | 86.48% | 82.81% | 82.45% | 19/10/27 |
+| VDCNN            | 87.32% | 84.46% | 84.35% | 19/10/27 |
+| SAN | 90.86% | 86.76% | 86.47% | 19/10/27 |
+| ETRIBERT | 91.13% | 89.18% | 88.88% | 19/10/27 |
+| SKTBERT | 92.39% | 88.98% | 88.98% | 19/11/10 |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
@@ -34,11 +34,11 @@ The papers were implemented in using korean corpus
 
 | Model \ Accuracy | Train (6,136) | Validation (682) | Test (758) | Date |
 | :--------------- | :-------: | :------------: | :------------: | -------------- |
-| Siam     |  93.30%  |     83.57%     |     84.16%     | 191028       |
-| SAN | 94.86% | 83.13% | 84.96% | 191028 |
-| Stochastic | 88.70% | 81.67% | 81.92% | 191106 |
-| ETRIBERT | 95.04% | 93.69% | 93.93% | 191004 |
-| SKTBERT | 93.64% | 91.34% | 91.16% | 191110 |
+| Siam     |  93.30%  |     83.57%     |     84.16%     | 19/10/28     |
+| SAN | 94.86% | 83.13% | 84.96% | 19/10/28 |
+| Stochastic | 88.70% | 81.67% | 81.92% | 19/11/06 |
+| ETRIBERT | 95.04% | 93.69% | 93.93% | 19/10/04 |
+| SKTBERT | 93.64% | 91.34% | 91.16% | 19/11/10 |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
@@ -58,7 +58,7 @@ The papers were implemented in using korean corpus
 ### Named entity recognition
 | Model \ f1 | Train (81,000) | Validation (9,000) | Date |
 | :--------------- | :-------: | :------------: | -------------- |
-| BiLSTM-CRF |  79.88%  |     76.45%     | 191004         |
+| BiLSTM-CRF |  79.88%  |     76.45%     | 19/10/04       |
 + Using the [Naver nlp-challange corpus for NER](https://github.com/naver/nlp-challenge/tree/master/missions/ner)
 + Hyper-parameter was arbitrarily selected.
 * [x] [Bidirectional LSTM-CRF Models for Sequence Tagging](https://github.com/aisolab/nlp_implementation/tree/master/Bidirectional_LSTM-CRF_Models_for_Sequence_Tagging) (BiLSTM-CRF)
@@ -72,11 +72,13 @@ The papers were implemented in using korean corpus
 
 
 ### Neural machine translation
++ Creating dataset from https://github.com/songys/Question_pair 
++ Hyper-parameter was arbitrarily selected. (defined by `conf/model/{type}.json`)
 
-| Model \ Perplexity | Train () | Validation  () | Test () | Date |
-| ------------------ | -------- | -------------- | ------- | ---- |
-| LuongAttn          |          |                |         |      |
-| Transformer        |          |                |         |      |
+| Model \ Perplexity | Train (8,999) | Validation  (900) | Test (100) | Date     |
+| ------------------ | ------------- | ----------------- | ---------- | -------- |
+| LuongAttn          | 5.09          | 25.32             | 27.75      | 20/02/27 |
+| Transformer        |               |                   |            |          |
 
 * [x] Effective Approaches to Attention-based Neural Machine Translation (as LuongAttn)
 	+ https://arxiv.org/abs/1608.07905
@@ -84,7 +86,7 @@ The papers were implemented in using korean corpus
 	+ https://arxiv.org/abs/1706.03762
 
 
-### Machine reading comprension
+### Machine reading comprehension
 * [ ] Machine Comprehension Using Match-LSTM and Answer Pointer
 	+ https://arxiv.org/abs/1611.01603
 * [ ] Bi-directional attention flow for machine comprehension
