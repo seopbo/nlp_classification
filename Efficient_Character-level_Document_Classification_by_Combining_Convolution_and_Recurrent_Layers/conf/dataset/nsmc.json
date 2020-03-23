@@ -1,0 +1,6 @@
+{
+    "train": "nsmc/train.txt",
+    "validation": "nsmc/validation.txt",
+    "test": "nsmc/test.txt",
+    "vocab": "nsmc/vocab.pkl"
+}

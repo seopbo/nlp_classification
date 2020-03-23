@@ -1,0 +1,7 @@
+{
+  "type": "convrec",
+  "num_classes": 2,
+  "embedding_dim": 32,
+  "hidden_dim": 128,
+  "min_length": 15
+}
