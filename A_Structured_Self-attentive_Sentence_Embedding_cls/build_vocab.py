@@ -9,8 +9,8 @@ from utils import Config
 from collections import Counter
 
 # loading dataset
-data_dir = Path("data")
-config = Config(data_dir / "config.json")
+nsmc_dir = Path("nsmc")
+config = Config("conf/dataset/nsmc.json")
 tr = pd.read_csv(config.train, sep="\t").loc[:, ["document", "label"]]
 
 # extracting morph in sentences
@@ -37,8 +37,8 @@ vocab = Vocab(
 vocab.embedding = array
 
 # saving vocab
-with open(data_dir / "vocab.pkl", mode="wb") as io:
+with open(nsmc_dir / "vocab.pkl", mode="wb") as io:
     pickle.dump(vocab, io)
 
-config.update({"vocab": str(data_dir / "vocab.pkl")})
-config.save(data_dir / "config.json")
+config.update({"vocab": str(nsmc_dir / "vocab.pkl")})
+config.save("conf/dataset/nsmc.json")

@@ -1,0 +1,8 @@
+{
+  "type": "san",
+  "num_classes": 2,
+  "lstm_hidden_dim": 128,
+  "da": 128,
+  "r": 6,
+  "hidden_dim": 256
+}
