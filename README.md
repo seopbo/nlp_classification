@@ -2,8 +2,10 @@
 The papers were implemented in using korean corpus 
 
 ### Classification
-+ Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc)
-+ Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
++ Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc) (a.k.a. `nsmc`)
++ Configuration
+  + `conf/model/{type}.json` (e.g. `type = ["sencnn", "charcnn",...]`)
+  + `conf/dataset/nsmc.json`
 
 | Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
@@ -11,7 +13,7 @@ The papers were implemented in using korean corpus
 | CharCNN          | 85.26% | 81.34% | 81.07% | 20/03/04 |
 | ConvRec          | 86.38% | 82.78% | 82.54% | 20/03/23 |
 | VDCNN            | 83.85% | 82.23% | 81.61% | 20/03/24 |
-| SAN | 90.86% | 86.76% | 86.47% | 19/10/27 |
+| SAN | 90.89% | 86.88% | 86.37% | 20/03/28 |
 | ETRIBERT | 91.13% | 89.18% | 88.88% | 19/10/27 |
 | SKTBERT | 92.39% | 88.98% | 88.98% | 19/11/10 |
 
@@ -72,8 +74,11 @@ The papers were implemented in using korean corpus
 
 
 ### Neural machine translation
-+ Creating dataset from https://github.com/songys/Question_pair 
-+ Hyper-parameter was arbitrarily selected. (defined by `conf/model/{type}.json`)
++ Creating dataset from `1_구어체_190920.xlsx` of http://aihub.or.kr/sample/KEnglish_Text_Corpus_sample.zip
++ Configuration
+  + `conf/model/{type}.json` (e.g. `type = ["luongattn", "transformer",...]`)
+  + `conf/dataset/sample.json`
+
 
 | Model \ Perplexity | Train (8,999) | Validation  (900) | Test (100) | Date     |
 | ------------------ | ------------- | ----------------- | ---------- | -------- |
