@@ -1,0 +1,6 @@
+{
+    "config": "pretrained/skt/bert_config_skt.json",
+    "bert": "pretrained/skt/pytorch_model_skt.bin",
+    "tokenizer": "pretrained/skt/pytorch_model_skt_tokenizer.model",
+    "vocab": "pretrained/skt/pytorch_model_skt_vocab.pkl"
+}

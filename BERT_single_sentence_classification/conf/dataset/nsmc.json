@@ -1,0 +1,5 @@
+{
+    "train": "nsmc/train.txt",
+    "validation": "nsmc/validation.txt",
+    "test": "nsmc/test.txt"
+}

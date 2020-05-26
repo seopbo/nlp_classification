@@ -1,8 +1,0 @@
-{
-  "num_classes":  2,
-  "length": 64,
-  "epochs": 2,
-  "batch_size": 64,
-  "learning_rate": 1e-3,
-  "summary_step": 1000
-}
