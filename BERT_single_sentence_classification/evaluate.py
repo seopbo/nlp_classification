@@ -50,14 +50,14 @@ def main(args):
     checkpoint_manager = CheckpointManager(exp_dir)
     checkpoint = checkpoint_manager.load_checkpoint('best.tar')
     config = BertConfig()
-    config.update(ptr_config.config)
+    config.update(ptr_config)
     model = SentenceClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     model.load_state_dict(checkpoint['model_state_dict'])
 
     # evaluation
-    filepath = getattr(dataset_config, args.datas)
+    filepath = getattr(dataset_config, args.data)
     ds = Corpus(filepath, preprocessor.preprocess)
-    dl = DataLoader(ds, batch_size=model_config.batch_size, num_workers=4)
+    dl = DataLoader(ds, batch_size=args.batch_size, num_workers=4)
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
@@ -74,6 +74,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset_config", default="conf/dataset/nsmc.json")
+    parser.add_argument("--data", default="test")
     parser.add_argument("--model_config", default="conf/model/classifier_skt.json")
     parser.add_argument("--epochs", default=3, help="number of epochs of training")
     parser.add_argument("--batch_size", default=64, help="batch size of training")
@@ -83,3 +84,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--weight_decay", default=5e-4, help="weight decay of training"
     )
+    args = parser.parse_args()
+    main(args)
+
