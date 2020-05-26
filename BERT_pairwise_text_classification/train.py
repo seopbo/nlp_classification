@@ -53,7 +53,8 @@ if __name__ == '__main__':
         preprocessor = PreProcessor(vocab=vocab, split_fn=ptr_tokenizer, pad_fn=pad_sequence)
 
     # model
-    config = BertConfig(ptr_config.config)
+    config = BertConfig()
+    config.update(ptr_config.config)
     model = PairwiseClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     bert_pretrained = torch.load(ptr_config.bert)
     model.load_state_dict(bert_pretrained, strict=False)
