@@ -47,7 +47,8 @@ if __name__ == '__main__':
     # model (restore)
     checkpoint_manager = CheckpointManager(model_dir)
     checkpoint = checkpoint_manager.load_checkpoint('best_{}.tar'.format(args.type))
-    config = BertConfig(ptr_config.config)
+    config = BertConfig()
+    config.update(ptr_config.config)
     model = PairwiseClassifier(config, num_classes=model_config.num_classes, vocab=preprocessor.vocab)
     model.load_state_dict(checkpoint['model_state_dict'])
 
