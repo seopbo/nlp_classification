@@ -1,7 +1,7 @@
-# NLP paper implementation with PyTorch (under construction)
+# NLP paper implementation relevant to classification with PyTorch (under construction)
 The papers were implemented in using korean corpus 
 
-### Classification
+### Single sentence classification (sentiment classification task)
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc) (a.k.a. `nsmc`)
 + Configuration
   + `conf/model/{type}.json` (e.g. `type = ["sencnn", "charcnn",...]`)
@@ -30,7 +30,7 @@ The papers were implemented in using korean corpus
 * [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
 
-### Paraphrase detection
+### Pairwise-text-classification (paraphrase detection task)
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
 
@@ -51,50 +51,3 @@ The papers were implemented in using korean corpus
   + https://arxiv.org/abs/1804.07888
 * [x] [BERT_pairwise_text_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_pairwise_text_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
-
-### Language model
-* [ ] Character-Aware Neural Language Models
-  + https://arxiv.org/abs/1508.06615
-
-
-### Named entity recognition
-| Model \ f1 | Train (81,000) | Validation (9,000) | Date |
-| :--------------- | :-------: | :------------: | -------------- |
-| BiLSTM-CRF |  79.88%  |     76.45%     | 19/10/04       |
-+ Using the [Naver nlp-challange corpus for NER](https://github.com/naver/nlp-challenge/tree/master/missions/ner)
-+ Hyper-parameter was arbitrarily selected.
-* [x] [Bidirectional LSTM-CRF Models for Sequence Tagging](https://github.com/aisolab/nlp_implementation/tree/master/Bidirectional_LSTM-CRF_Models_for_Sequence_Tagging) (BiLSTM-CRF)
-	+ https://arxiv.org/abs/1508.01991
-* [ ] End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF
-	+ https://arxiv.org/abs/1603.01354
-* [ ] Neural Architectures for Named Entity Recognition
-	+ https://arxiv.org/abs/1603.01360
-* [ ] BERT_single_sentence_tagging
-	+ https://arxiv.org/abs/1810.04805
-
-
-### Neural machine translation
-+ Creating dataset from `1_구어체_190920.xlsx` of http://aihub.or.kr/sample/KEnglish_Text_Corpus_sample.zip
-+ Configuration
-  + `conf/model/{type}.json` (e.g. `type = ["luongattn", "transformer",...]`)
-  + `conf/dataset/sample.json`
-
-
-| Model \ Perplexity | Train (8,999) | Validation  (900) | Test (100) | Date     |
-| ------------------ | ------------- | ----------------- | ---------- | -------- |
-| LuongAttn          | 5.09          | 25.32             | 27.75      | 20/02/27 |
-| Transformer        |               |                   |            |          |
-
-* [x] Effective Approaches to Attention-based Neural Machine Translation (as LuongAttn)
-	+ https://arxiv.org/abs/1608.07905
-* [ ] Attention Is All You Need (as Transformer)
-	+ https://arxiv.org/abs/1706.03762
-
-
-### Machine reading comprehension
-* [ ] Machine Comprehension Using Match-LSTM and Answer Pointer
-	+ https://arxiv.org/abs/1611.01603
-* [ ] Bi-directional attention flow for machine comprehension
-	+ https://arxiv.org/abs/1611.01603
-* [ ] BERT_question_answering
-	+ https://arxiv.org/abs/1810.04805
