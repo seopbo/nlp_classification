@@ -1,6 +1,0 @@
-{
-  "train": "data/train.pkl",
-  "validation": "data/validation.pkl",
-  "token_vocab": "data/token_vocab.pkl",
-  "label_vocab": "data/label_vocab.pkl"
-}

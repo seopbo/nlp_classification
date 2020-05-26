@@ -1,7 +1,0 @@
-{
-  "type": "luongattn",
-  "method": "general",
-  "encoder_hidden_dim": 256,
-  "decoder_hidden_dim": 512,
-  "drop_ratio": 0.3
-}
