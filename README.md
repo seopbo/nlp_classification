@@ -1,4 +1,4 @@
-# NLP paper implementation relevant to classification with PyTorch (under construction)
+# NLP paper implementation relevant to classification with PyTorch 
 The papers were implemented in using korean corpus 
 
 ### Single sentence classification (sentiment classification task)
@@ -30,7 +30,7 @@ The papers were implemented in using korean corpus
 * [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
 
-### Pairwise-text-classification (paraphrase detection task)
+### Pairwise-text-classification (paraphrase detection task) (under construction)
 + Creating dataset from https://github.com/songys/Question_pair 
 + Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
 
