@@ -7,7 +7,8 @@ The papers were implemented in using korean corpus
   + `conf/model/{type}.json` (e.g. `type = ["sencnn", "charcnn",...]`)
   + `conf/dataset/nsmc.json`
 + Structure
-``` 
+```bash
+# example: Convolutional_Neural_Networks_for_Sentence_Classification
 ├── build_dataset.py
 ├── build_vocab.py
 ├── conf
@@ -66,6 +67,38 @@ The papers were implemented in using korean corpus
 + Configuration
   + `conf/model/{type}.json` (e.g. `type = ["siam", "san",...]`)
   + `conf/dataset/qpair.json`
++ Structure
+```bash
+# example: Siamese_recurrent_architectures_for_learning_sentence_similarity
+├── build_dataset.py
+├── build_vocab.py
+├── conf
+│   ├── dataset
+│   │   └── qpair.json
+│   └── model
+│       └── siam.json
+├── evaluate.py
+├── experiments
+│   └── siam
+│       └── epochs_5_batch_size_64_learning_rate_0.001
+├── model
+│   ├── data.py
+│   ├── __init__.py
+│   ├── metric.py
+│   ├── net.py
+│   ├── ops.py
+│   ├── split.py
+│   └── utils.py
+├── qpair
+│   ├── kor_pair_test.csv
+│   ├── kor_pair_train.csv
+│   ├── test.txt
+│   ├── train.txt
+│   ├── validation.txt
+│   └── vocab.pkl
+├── train.py
+└── utils.py
+```
 
 
 | Model \ Accuracy | Train (6,136) | Validation (682) | Test (758) | Date |
