@@ -17,7 +17,7 @@ from utils import Config, CheckpointManager, SummaryManager
 
 
 def get_tokenizer(dataset_config, model_config):
-    with open(dataset_config.vocab, mode='rb') as io:
+    with open(dataset_config.vocab, mode="rb") as io:
         vocab = pickle.load(io)
     pad_sequence = PadSequence(length=model_config.length, pad_val=vocab.to_indices(vocab.padding_token))
     tokenizer = Tokenizer(vocab=vocab, split_fn=split_to_jamo, pad_fn=pad_sequence)
@@ -58,21 +58,21 @@ def main(args):
     loss_fn = nn.CrossEntropyLoss()
     opt = optim.Adam(params=model.parameters(), lr=args.learning_rate)
     scheduler = ReduceLROnPlateau(opt, patience=5)
-    device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
 
-    writer = SummaryWriter('{}/runs'.format(exp_dir))
+    writer = SummaryWriter(f"{exp_dir}/runs")
     checkpoint_manager = CheckpointManager(exp_dir)
     summary_manager = SummaryManager(exp_dir)
     best_val_loss = 1e+10
 
-    for epoch in tqdm(range(args.epochs), desc='epochs'):
+    for epoch in tqdm(range(args.epochs), desc="epochs"):
 
         tr_loss = 0
         tr_acc = 0
 
         model.train()
-        for step, mb in tqdm(enumerate(tr_dl), desc='steps', total=len(tr_dl)):
+        for step, mb in tqdm(enumerate(tr_dl), desc="steps", total=len(tr_dl)):
             x_mb, y_mb = map(lambda elm: elm.to(device), mb)
 
             opt.zero_grad()
@@ -88,34 +88,33 @@ def main(args):
             tr_acc += mb_acc.item()
 
             if (epoch * len(tr_dl) + step) % args.summary_step == 0:
-                val_loss = evaluate(model, val_dl, {'loss': loss_fn}, device)['loss']
-                writer.add_scalars('loss', {'train': tr_loss / (step + 1),
-                                            'val': val_loss}, epoch * len(tr_dl) + step)
+                val_loss = evaluate(model, val_dl, {"loss": loss_fn}, device)["loss"]
+                writer.add_scalars("loss", {"train": tr_loss / (step + 1),
+                                            "val": val_loss}, epoch * len(tr_dl) + step)
                 model.train()
         else:
             tr_loss /= (step + 1)
             tr_acc /= (step + 1)
 
-            tr_summary = {'loss': tr_loss, 'acc': tr_acc}
-            val_summary = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
-            scheduler.step(val_summary['loss'])
-            tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
-                       '{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}'.format(epoch + 1, tr_summary['loss'],
-                                                                        val_summary['loss'], tr_summary['acc'],
-                                                                        val_summary['acc']))
+            tr_summary = {"loss": tr_loss, "acc": tr_acc}
+            val_summary = evaluate(model, val_dl, {"loss": loss_fn, "acc": acc}, device)
+            scheduler.step(val_summary["loss"])
+            tqdm.write(f"epoch: {epoch+1}\n"
+                       f"tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f}\n"
+                       f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
 
-            val_loss = val_summary['loss']
+            val_loss = val_summary["loss"]
             is_best = val_loss < best_val_loss
 
             if is_best:
-                state = {'epoch': epoch + 1,
-                         'model_state_dict': model.state_dict(),
-                         'opt_state_dict': opt.state_dict()}
-                summary = {'train': tr_summary, 'validation': val_summary}
+                state = {"epoch": epoch + 1,
+                         "model_state_dict": model.state_dict(),
+                         "opt_state_dict": opt.state_dict()}
+                summary = {"train": tr_summary, "validation": val_summary}
 
                 summary_manager.update(summary)
-                summary_manager.save('summary.json')
-                checkpoint_manager.save_checkpoint(state, 'best.tar')
+                summary_manager.save("summary.json")
+                checkpoint_manager.save_checkpoint(state, "best.tar")
 
                 best_val_loss = val_loss
 

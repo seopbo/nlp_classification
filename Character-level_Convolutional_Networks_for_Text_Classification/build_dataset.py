@@ -26,4 +26,3 @@ config = Config(
     }
 )
 config.save("conf/dataset/nsmc.json")
-
