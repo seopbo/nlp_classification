@@ -64,7 +64,7 @@ def main(args):
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
 
-    writer = SummaryWriter("{}/runs".format(exp_dir))
+    writer = SummaryWriter(f"{exp_dir}/runs")
     checkpoint_manager = CheckpointManager(exp_dir)
     summary_manager = SummaryManager(exp_dir)
     best_val_loss = 1e10
@@ -93,11 +93,8 @@ def main(args):
 
             if (epoch * len(tr_dl) + step) % args.summary_step == 0:
                 val_loss = evaluate(model, val_dl, {"loss": loss_fn}, device)["loss"]
-                writer.add_scalars(
-                    "loss",
-                    {"train": tr_loss / (step + 1), "validation": val_loss},
-                    epoch * len(tr_dl) + step,
-                )
+                writer.add_scalars("loss", {"train": tr_loss / (step + 1), "validation": val_loss},
+                                   epoch * len(tr_dl) + step)
                 model.train()
         else:
             tr_loss /= step + 1
@@ -106,10 +103,9 @@ def main(args):
             tr_summary = {"loss": tr_loss, "acc": tr_acc}
             val_summary = evaluate(model, val_dl, {"loss": loss_fn, "acc": acc}, device)
             scheduler.step(val_summary["loss"])
-            tqdm.write(
-                f"epoch: {epoch+1}, tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f},"
-                f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}"
-            )
+            tqdm.write(f"epoch: {epoch+1}\n"
+                       f"tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f}\n"
+                       f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
 
             val_loss = val_summary["loss"]
             is_best = val_loss < best_val_loss
