@@ -1,7 +1,7 @@
 # NLP paper implementation relevant to classification with PyTorch 
 The papers were implemented in using korean corpus 
 ### Prelimnary & Usage
-- prelimnary
+- preliminary
 ```bash
 pyenv virualenv 3.7.7 nlp
 pyenv activate nlp
