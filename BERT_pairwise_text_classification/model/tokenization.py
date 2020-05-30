@@ -191,8 +191,8 @@ class BasicTokenizer(object):
 		### joonho.lim @ 2019-03-15
 		# # # This was added on November 1st, 2018 for the multilingual and Chinese
 		# # # models. This is also applied to the English models now, but it doesn't
-		# # # matter since the English models were not trained on any Chinese data
-		# # # and generally don't have any Chinese data in them (there are Chinese
+		# # # matter since the English models were not trained on any Chinese qpair
+		# # # and generally don't have any Chinese qpair in them (there are Chinese
 		# # # characters in the vocabulary because Wikipedia does have some Chinese
 		# # # words in the English Wikipedia.).
 		# # text = self._tokenize_chinese_chars(text)
