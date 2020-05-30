@@ -8,8 +8,8 @@ from model.split import split_morphs
 from model.utils import Vocab
 from utils import Config
 
-data_dir = Path("data")
-config = Config(data_dir / "config.json")
+qpair_dir = Path("qpair")
+config = Config("conf/dataset/qpair.json")
 train = pd.read_csv(config.train, sep="\t")
 
 list_of_tokens_qa = train["question1"].apply(lambda sen: split_morphs(sen)).tolist()
@@ -24,8 +24,8 @@ tmp_vocab.set_embedding(ptr_embedding)
 vocab = Vocab(tmp_vocab.idx_to_token, bos_token=None, eos_token=None)
 vocab.embedding = tmp_vocab.embedding.idx_to_vec.asnumpy()
 
-with open(data_dir / "vocab.pkl", mode="wb") as io:
+with open(qpair_dir / "vocab.pkl", mode="wb") as io:
     pickle.dump(vocab, io)
 
-config.update({"vocab": str(data_dir / "vocab.pkl")})
-config.save(data_dir / "config.json")
+config.update({"vocab": str(qpair_dir / "vocab.pkl")})
+config.save("conf/dataset/qpair.json")

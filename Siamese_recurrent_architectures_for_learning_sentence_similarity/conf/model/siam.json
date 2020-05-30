@@ -1,0 +1,5 @@
+{
+  "type": "siam",
+  "num_classes":  2,
+  "hidden_dim": 300
+}

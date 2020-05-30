@@ -38,7 +38,7 @@ def batchify(
         data (List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]): list of tuples of torch.Tensors
 
     Returns:
-        data (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): tuple of torch.Tensors
+        qpair (Tuple[torch.Tensor, torch.Tensor, torch.Tensor]): tuple of torch.Tensors
 
     """
     data = list(zip(*data))

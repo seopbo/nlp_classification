@@ -14,68 +14,57 @@ from utils import Config, CheckpointManager, SummaryManager
 from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 
-# for reproducibility
-torch.manual_seed(777)
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--data_dir", default="data", help="Directory containing config.json of data"
-)
-parser.add_argument(
-    "--model_dir",
-    default="experiments/base_model",
-    help="Directory containing config.json of model",
-)
-
-
-if __name__ == "__main__":
-    args = parser.parse_args()
-    data_dir = Path(args.data_dir)
-    model_dir = Path(args.model_dir)
-    data_config = Config(data_dir / "config.json")
-    model_config = Config(model_dir / "config.json")
-
-    # tokenizer
-    with open(data_config.vocab, mode="rb") as io:
+def get_tokenizer(dataset_config, split_fn):
+    with open(dataset_config.vocab, mode="rb") as io:
         vocab = pickle.load(io)
-    tokenizer = Tokenizer(vocab, split_morphs)
+    tokenizer = Tokenizer(vocab, split_fn)
+    return tokenizer
 
-    # model
-    model = MaLSTM(
-        num_classes=model_config.num_classes,
-        hidden_dim=model_config.hidden_dim,
-        vocab=tokenizer.vocab,
+
+def get_data_loaders(dataset_config, tokenizer, batch_size, collate_fn=batchify):
+    tr_ds = Corpus(dataset_config.train, tokenizer.split_and_transform)
+    tr_dl = DataLoader(tr_ds, batch_size=batch_size, shuffle=True, num_workers=4, drop_last=True,
+                       collate_fn=collate_fn)
+    val_ds = Corpus(dataset_config.validation, tokenizer.split_and_transform)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, num_workers=4, collate_fn=collate_fn)
+    return tr_dl, val_dl
+
+
+def main(args):
+    dataset_config = Config(args.dataset_config)
+    model_config = Config(args.model_config)
+
+    exp_dir = Path("experiments") / model_config.type
+    exp_dir = exp_dir.joinpath(
+        f"epochs_{args.epochs}_batch_size_{args.batch_size}_learning_rate_{args.learning_rate}"
     )
 
-    # training
-    tr_ds = Corpus(data_config.train, tokenizer.split_and_transform)
-    tr_dl = DataLoader(
-        tr_ds,
-        batch_size=model_config.batch_size,
-        shuffle=True,
-        num_workers=4,
-        drop_last=True,
-        collate_fn=batchify,
-    )
-    val_ds = Corpus(data_config.validation, tokenizer.split_and_transform)
-    val_dl = DataLoader(
-        val_ds, batch_size=model_config.batch_size, num_workers=4, collate_fn=batchify
-    )
+    if not exp_dir.exists():
+        exp_dir.mkdir(parents=True)
+
+    if args.fix_seed:
+        torch.manual_seed(777)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    tokenizer = get_tokenizer(dataset_config, split_fn=split_morphs)
+    tr_dl, val_dl = get_data_loaders(dataset_config, tokenizer, args.batch_size, collate_fn=batchify)
+
+    model = MaLSTM(num_classes=model_config.num_classes, hidden_dim=model_config.hidden_dim, vocab=tokenizer.vocab)
 
     loss_fn = nn.CrossEntropyLoss()
-    opt = optim.Adam(model.parameters(), lr=model_config.learning_rate)
+    opt = optim.Adam(model.parameters(), lr=args.learning_rate)
 
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
     model.to(device)
 
-    writer = SummaryWriter("{}/runs".format(model_dir))
-    checkpoint_manager = CheckpointManager(model_dir)
-    summary_manager = SummaryManager(model_dir)
+    writer = SummaryWriter(f"{exp_dir}/runs")
+    checkpoint_manager = CheckpointManager(exp_dir)
+    summary_manager = SummaryManager(exp_dir)
     best_val_loss = 1e10
 
-    for epoch in tqdm(range(model_config.epochs), desc="epochs"):
+    for epoch in tqdm(range(args.epochs), desc="epochs"):
 
         tr_loss = 0
         tr_acc = 0
@@ -95,7 +84,7 @@ if __name__ == "__main__":
             tr_loss += mb_loss.item()
             tr_acc += mb_acc.item()
 
-            if (epoch * len(tr_dl) + step) % model_config.summary_step == 0:
+            if (epoch * len(tr_dl) + step) % args.summary_step == 0:
                 val_loss = evaluate(model, val_dl, {"loss": loss_fn}, device)["loss"]
                 writer.add_scalars(
                     "loss",
@@ -103,10 +92,9 @@ if __name__ == "__main__":
                     epoch * len(tr_dl) + step,
                 )
                 tqdm.write(
-                    "global_step: {:3}, tr_loss: {:.3f}, val_loss: {:.3f}".format(
-                        epoch * len(tr_dl) + step, tr_loss / (step + 1), val_loss
-                    )
-                )
+                    f"global_step: {epoch * len(tr_dl) + step}:3,"
+                    f" tr_loss: {tr_loss / (step + 1)}:.3f,"
+                    f" val_loss: {val_loss}:.3f")
                 model.train()
         else:
             tr_loss /= step + 1
@@ -114,17 +102,11 @@ if __name__ == "__main__":
 
             tr_summary = {"loss": tr_loss, "acc": tr_acc}
             val_summary = evaluate(model, val_dl, {"loss": loss_fn, "acc": acc}, device)
-            tqdm.write(
-                "epoch : {}, tr_loss: {:.3f}, val_loss: "
-                "{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}".format(
-                    epoch + 1,
-                    tr_summary["loss"],
-                    val_summary["loss"],
-                    tr_summary["acc"],
-                    val_summary["acc"],
-                )
-            )
-
+            tqdm.write(f"epoch : {epoch + 1},"
+                       f" tr_loss: {tr_summary['loss']:.3f},"
+                       f" val_loss: {val_summary['loss']:.3f},"
+                       f" tr_acc: {tr_summary['acc']:.2%},"
+                       f" val_acc: {val_summary['acc']:.2%}")
             val_loss = val_summary["loss"]
             is_best = val_loss < best_val_loss
 
@@ -141,3 +123,16 @@ if __name__ == "__main__":
                 checkpoint_manager.save_checkpoint(state, "best.tar")
 
                 best_val_loss = val_loss
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset_config", default="conf/dataset/qpair.json")
+    parser.add_argument("--model_config", default="conf/model/siam.json")
+    parser.add_argument("--epochs", default=5, help="number of epochs of training")
+    parser.add_argument("--batch_size", default=64, help="batch size of training")
+    parser.add_argument("--learning_rate", default=1e-3, help="learning rate of training")
+    parser.add_argument("--summary_step", default=500, help="logging performance at each step")
+    parser.add_argument("--fix_seed", action="store_true", default=False)
+    args = parser.parse_args()
+    main(args)
