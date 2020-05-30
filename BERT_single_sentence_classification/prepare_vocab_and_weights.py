@@ -89,7 +89,7 @@ if __name__ == '__main__':
             with zipfile.ZipFile(str(zipfile_path)) as unzip:
                 unzip.extractall(str(ptr_dir))
 
-            from pretrained.etri.tokenization import BertTokenizer as ETRITokenizer
+            from model.tokenization import BertTokenizer as ETRITokenizer
             # loading BertTokenizer
             ptr_config_path = ptr_dir / 'bert_config_etri.json'
             ptr_tokenizer_path = ptr_dir / "vocab.korean.rawtext.list"
