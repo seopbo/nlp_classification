@@ -12,7 +12,7 @@ pip install -r requirements.txt
 python build_dataset.py
 python build_vocab.py
 python train.py # default training parameter
-python evaluate.py # defatul evaluate parameter
+python evaluate.py # defatul evaluation parameter
 ```
 
 ### Single sentence classification (sentiment classification task)
