@@ -7,7 +7,8 @@ The papers were implemented in using korean corpus
   + `conf/model/{type}.json` (e.g. `type = ["sencnn", "charcnn",...]`)
   + `conf/dataset/nsmc.json`
 + Structure
-```
+``` 
+# example: Convolutional_Neural_Networks_for_Sentence_Classification
 ├── build_dataset.py
 ├── build_vocab.py
 ├── conf
@@ -32,10 +33,7 @@ The papers were implemented in using korean corpus
 │   ├── train.txt
 │   ├── validation.txt
 │   └── vocab.pkl
-├── __pycache__
-│   └── utils.cpython-37.pyc
 ├── train.py
-├── tree.txt
 └── utils.py
 ```
 
