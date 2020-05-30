@@ -9,21 +9,24 @@ The papers were implemented in using korean corpus
 + Structure
 ``` 
 # example: Convolutional_Neural_Networks_for_Sentence_Classification
+.
 ├── build_dataset.py
 ├── build_vocab.py
 ├── conf
 │   ├── dataset
+│   │   └── nsmc.json
 │   └── model
+│       └── sencnn.json
 ├── evaluate.py
 ├── experiments
 │   └── sencnn
+│       └── epochs_5_batch_size_256_learning_rate_0.001
 ├── model
 │   ├── data.py
 │   ├── __init__.py
 │   ├── metric.py
 │   ├── net.py
 │   ├── ops.py
-│   ├── __pycache__
 │   ├── split.py
 │   └── utils.py
 ├── nsmc
