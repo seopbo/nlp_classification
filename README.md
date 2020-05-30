@@ -1,5 +1,19 @@
 # NLP paper implementation relevant to classification with PyTorch 
 The papers were implemented in using korean corpus 
+### Prelimnary & Usage
+- prelimnary
+```bash
+pyenv virualenv 3.7.7 nlp
+pyenv activate nlp
+pip install -r requirements.txt
+```
+- Usage
+```bash
+python build_dataset.py
+python build_vocab.py
+python train.py
+python evaluate.py
+```
 
 ### Single sentence classification (sentiment classification task)
 + Using the [Naver sentiment movie corpus v1.0](https://github.com/e9t/nsmc) (a.k.a. `nsmc`)
