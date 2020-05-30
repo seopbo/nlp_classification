@@ -1,8 +1,0 @@
-{
-  "num_classes":  2,
-  "hidden_dim": 300,
-  "epochs": 5,
-  "batch_size": 64,
-  "learning_rate": 1e-3,
-  "summary_step": 500
-}
