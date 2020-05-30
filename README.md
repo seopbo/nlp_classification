@@ -32,7 +32,10 @@ The papers were implemented in using korean corpus
 
 ### Pairwise-text-classification (paraphrase detection task) (under construction)
 + Creating dataset from https://github.com/songys/Question_pair 
-+ Hyper-parameter was arbitrarily selected. (defined by `experiments/base_model/config.json`)
++ Configuration
+  + `conf/model/{type}.json` (e.g. `type = ["siam", "san",...]`)
+  + `conf/dataset/qpair.json`
+
 
 | Model \ Accuracy | Train (6,136) | Validation (682) | Test (758) | Date |
 | :--------------- | :-------: | :------------: | :------------: | -------------- |
