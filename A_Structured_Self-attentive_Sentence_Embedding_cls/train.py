@@ -107,9 +107,9 @@ def main(args):
             tr_summary = {"loss": tr_loss, "acc": tr_acc}
             val_summary = evaluate(model, val_dl, {"loss": loss_fn, "acc": acc}, device)
             scheduler.step(val_summary['loss'])
-            tqdm.write(f"epoch : {epoch + 1},"
-                       f" tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f},"
-                       f" tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
+            tqdm.write(f"epoch: {epoch+1}\n"
+                       f"tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f}\n"
+                       f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
 
             val_loss = val_summary["loss"]
             is_best = val_loss < best_val_loss
