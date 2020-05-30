@@ -1,0 +1,6 @@
+{
+    "train": "qpair/train.txt",
+    "validation": "qpair/validation.txt",
+    "test": "qpair/test.txt",
+    "vocab": "qpair/vocab.pkl"
+}
