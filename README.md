@@ -76,7 +76,7 @@ python evaluate.py # defatul evaluation parameter
 * [x] [BERT_single_sentence_classification](https://github.com/aisolab/nlp_implementation/tree/master/BERT_single_sentence_classification) (as ETRIBERT, SKTBERT)
   + https://arxiv.org/abs/1810.04805
 
-### Pairwise-text-classification (paraphrase detection task) (under construction)
+### Pairwise-text-classification (paraphrase detection task)
 + Creating dataset from https://github.com/songys/Question_pair 
 + Configuration
   + `conf/model/{type}.json` (e.g. `type = ["siam", "san",...]`)
