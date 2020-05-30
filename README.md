@@ -39,8 +39,8 @@ The papers were implemented in using korean corpus
 | Siam     |  93.30%  |     83.57%     |     84.16%     | 19/10/28     |
 | SAN | 94.86% | 83.13% | 84.96% | 19/10/28 |
 | Stochastic | 88.70% | 81.67% | 81.92% | 19/11/06 |
-| ETRIBERT | 95.04% | 93.69% | 93.93% | 19/10/04 |
-| SKTBERT | 93.64% | 91.34% | 91.16% | 19/11/10 |
+| ETRIBERT | 95.07% | 94.42% | 94.06% | 20/05/30 |
+| SKTBERT | 95.43% | 92.52% | 93.93% | 20/05/30 |
 
 
 * [x] [A Structured Self-attentive Sentence Embedding](https://github.com/aisolab/nlp_implementation/tree/master/A_Structured_Self-attentive_Sentence_Embedding_ptc) (as SAN)
