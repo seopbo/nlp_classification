@@ -61,7 +61,7 @@ def main(args):
     device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
     model.to(device)
 
-    writer = SummaryWriter('{}/runs'.format(exp_dir))
+    writer = SummaryWriter(f'{exp_dir}/runs')
     checkpoint_manager = CheckpointManager(exp_dir)
     summary_manager = SummaryManager(exp_dir)
     best_val_loss = 1e+10
@@ -99,10 +99,9 @@ def main(args):
             tr_summary = {'loss': tr_loss, 'acc': tr_acc}
             val_summary = evaluate(model, val_dl, {'loss': loss_fn, 'acc': acc}, device)
             scheduler.step(val_summary['loss'])
-            tqdm.write('epoch : {}, tr_loss: {:.3f}, val_loss: '
-                       '{:.3f}, tr_acc: {:.2%}, val_acc: {:.2%}'.format(epoch + 1, tr_summary['loss'],
-                                                                        val_summary['loss'], tr_summary['acc'],
-                                                                        val_summary['acc']))
+            tqdm.write(f"epoch: {epoch+1}\n"
+                       f"tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f}\n"
+                       f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
 
             val_loss = val_summary['loss']
             is_best = val_loss < best_val_loss
