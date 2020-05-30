@@ -9,8 +9,8 @@ from model.utils import Vocab
 from utils import Config
 
 # morphs
-data_dir = Path("data")
-config = Config(data_dir / "config.json")
+qpair_dir = Path("qpair")
+config = Config("conf/dataset/qpair.json")
 train = pd.read_csv(config.train, sep="\t")
 
 list_of_tokens_qa = train["question1"].apply(lambda sen: split_morphs(sen)).tolist()
@@ -25,10 +25,10 @@ tmp_vocab.set_embedding(ptr_embedding)
 morph_vocab = Vocab(tmp_vocab.idx_to_token, bos_token=None, eos_token=None)
 morph_vocab.embedding = tmp_vocab.embedding.idx_to_vec.asnumpy()
 
-with open(data_dir / "morph_vocab.pkl", mode="wb") as io:
+with open(qpair_dir / "morph_vocab.pkl", mode="wb") as io:
     pickle.dump(morph_vocab, io)
 
-config.update({"coarse_vocab": str(data_dir / "morph_vocab.pkl")})
+config.update({"coarse_vocab": str(qpair_dir / "morph_vocab.pkl")})
 
 # jamo
 chosung_list = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ',
@@ -46,8 +46,8 @@ jongsung_list = [' ', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ',
 list_of_jamos = sorted(set(chosung_list + jungsung_list + jongsung_list))
 jamo_vocab = Vocab(list_of_tokens=list_of_jamos, bos_token=None, eos_token=None)
 
-with open(data_dir / 'jamo_vocab.pkl', mode='wb') as io:
+with open(qpair_dir / 'jamo_vocab.pkl', mode='wb') as io:
     pickle.dump(jamo_vocab, io)
 
-config.update({"fine_vocab": str(data_dir / "jamo_vocab.pkl")})
-config.save(data_dir / "config.json")
+config.update({"fine_vocab": str(qpair_dir / "jamo_vocab.pkl")})
+config.save("conf/dataset/qpair.json")

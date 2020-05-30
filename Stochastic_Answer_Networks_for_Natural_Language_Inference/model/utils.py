@@ -240,6 +240,14 @@ class PreProcessor:
         list_of_coarse_indices = self._coarse_vocab.to_indices(list_of_coarse)
         return list_of_coarse_indices, list_of_fines_indices
 
+    @property
+    def coarse_vocab(self):
+        return self._coarse_vocab
+
+    @property
+    def fine_vocab(self):
+        return self._fine_vocab
+
     def _transform_fine(self, token):
         if token == self._coarse_vocab.padding_token:
             list_of_fine = [self._fine_vocab.padding_token] * self._fine_pad_fn._length

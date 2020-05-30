@@ -1,0 +1,8 @@
+{
+  "type": "stochastic",
+  "num_classes":  2,
+  "fine_embedding_dim": 16,
+  "hidden_dim": 64,
+  "multi_step": 3,
+  "prediction_drop_ratio": 0.1
+}

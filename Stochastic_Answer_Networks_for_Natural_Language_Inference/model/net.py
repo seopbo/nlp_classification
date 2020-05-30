@@ -90,14 +90,14 @@ class SAN(nn.Module):
 
 #
 # import pickle
-# from torch.utils.data import DataLoader
+# from torch.utils.qpair import DataLoader
 # from model.split import split_morphs, split_jamos
 # from model.utils import PreProcessor
-# from model.data import Corpus, batchify
+# from model.qpair import Corpus, batchify
 #
-# with open("data/jamo_vocab.pkl", mode="rb") as io:
+# with open("qpair/jamo_vocab.pkl", mode="rb") as io:
 #     jamo_vocab = pickle.load(io)
-# with open("data/morph_vocab.pkl", mode="rb") as io:
+# with open("qpair/morph_vocab.pkl", mode="rb") as io:
 #     morph_vocab = pickle.load(io)
 #
 #
@@ -107,7 +107,7 @@ class SAN(nn.Module):
 #     coarse_split_fn=split_morphs,
 #     fine_split_fn=split_jamos,
 # )
-# ds = Corpus("data/train.txt", transform_fn=preprocessor.preprocess)
+# ds = Corpus("qpair/train.txt", transform_fn=preprocessor.preprocess)
 # dl = DataLoader(ds, batch_size=2, shuffle=True, collate_fn=batchify)
 #
 # qa_mb, qb_mb, y_mb = next(iter(dl))
