@@ -14,8 +14,8 @@ The papers were implemented in using korean corpus
 | ConvRec          | 86.38% | 82.78% | 82.54% | 20/03/23 |
 | VDCNN            | 83.85% | 82.23% | 81.61% | 20/03/24 |
 | SAN | 90.89% | 86.88% | 86.37% | 20/03/28 |
-| ETRIBERT | 91.13% | 89.18% | 88.88% | 19/10/27 |
-| SKTBERT | 92.39% | 88.98% | 88.98% | 19/11/10 |
+| ETRIBERT | 91.12% | 89.24% | 88.98% | 20/05/30 |
+| SKTBERT | 92.20% | 89.08% | 88.96% | 20/05/30 |
 
 * [x] [Convolutional Neural Networks for Sentence Classification](https://github.com/aisolab/nlp_implementation/tree/master/Convolutional_Neural_Networks_for_Sentence_Classification) (as SenCNN)
   + https://arxiv.org/abs/1408.5882
