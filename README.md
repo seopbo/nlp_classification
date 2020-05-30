@@ -8,8 +8,6 @@ The papers were implemented in using korean corpus
   + `conf/dataset/nsmc.json`
 + Structure
 ``` 
-# example: Convolutional_Neural_Networks_for_Sentence_Classification
-.
 ├── build_dataset.py
 ├── build_vocab.py
 ├── conf
