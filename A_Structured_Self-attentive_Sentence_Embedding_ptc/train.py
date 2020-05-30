@@ -102,9 +102,6 @@ def main(args):
                 val_loss = evaluate(model, val_dl, {"loss": loss_fn}, device)["loss"]
                 writer.add_scalars("loss", {"train": tr_loss / (step + 1), "test": val_loss},
                                    epoch * len(tr_dl) + step)
-                tqdm.write(f"global_step: {epoch * len(tr_dl) + step}:3,"
-                           f" tr_loss: {tr_loss / (step + 1)}:.3f,"
-                           f" val_loss: {val_loss}:.3f")
                 model.train()
         else:
             tr_loss /= step + 1
@@ -112,9 +109,9 @@ def main(args):
 
             tr_summary = {"loss": tr_loss, "acc": tr_acc}
             val_summary = evaluate(model, val_dl, {"loss": loss_fn, "acc": acc}, device)
-            tqdm.write(f"epoch : {epoch + 1},"
-                       f" tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f},"
-                       f" tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
+            tqdm.write(f"epoch: {epoch+1}\n"
+                       f"tr_loss: {tr_summary['loss']:.3f}, val_loss: {val_summary['loss']:.3f}\n"
+                       f"tr_acc: {tr_summary['acc']:.2%}, val_acc: {val_summary['acc']:.2%}")
 
             val_loss = val_summary["loss"]
             is_best = val_loss < best_val_loss
