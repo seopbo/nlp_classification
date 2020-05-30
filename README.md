@@ -6,6 +6,38 @@ The papers were implemented in using korean corpus
 + Configuration
   + `conf/model/{type}.json` (e.g. `type = ["sencnn", "charcnn",...]`)
   + `conf/dataset/nsmc.json`
++ Structure
+```
+├── build_dataset.py
+├── build_vocab.py
+├── conf
+│   ├── dataset
+│   └── model
+├── evaluate.py
+├── experiments
+│   └── sencnn
+├── model
+│   ├── data.py
+│   ├── __init__.py
+│   ├── metric.py
+│   ├── net.py
+│   ├── ops.py
+│   ├── __pycache__
+│   ├── split.py
+│   └── utils.py
+├── nsmc
+│   ├── ratings_test.txt
+│   ├── ratings_train.txt
+│   ├── test.txt
+│   ├── train.txt
+│   ├── validation.txt
+│   └── vocab.pkl
+├── __pycache__
+│   └── utils.cpython-37.pyc
+├── train.py
+├── tree.txt
+└── utils.py
+```
 
 | Model \ Accuracy | Train (120,000) | Validation (30,000) | Test (50,000) | Date |
 | :--------------- | :-------: | :------------: | :------: | :--------------: |
